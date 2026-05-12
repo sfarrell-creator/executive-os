@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Executive OS</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0a0f1e;--navy2:#111827;--navy3:#1a2236;--navy4:#212d45;--navy5:#2a3a56;
+  --gold:#c9a84c;--gold2:#e8c96a;--gold3:#f5e0a0;
+  --text:#e8eaf0;--text2:#9aa3b8;--text3:#5c6882;
+  --border:#1e2d4a;--border2:#2a3a56;
+  --green:#2ecc8a;--red:#e05c5c;--blue:#4a9eff;--amber:#f0a330;
+  --sidebar:224px;
+}
+html,body{height:100%;background:var(--navy);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;overflow:hidden}
+#app{display:flex;height:100vh}
+
+/* ── SIDEBAR ── */
+#sidebar{width:var(--sidebar);min-width:var(--sidebar);background:var(--navy2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
+.sb-logo-mark{font-family:'Playfair Display',serif;font-size:15px;color:var(--gold);letter-spacing:0.05em}
+.sb-logo-sub{font-size:10px;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px}
+.sb-scroll{flex:1;overflow-y:auto;padding-bottom:8px}
+.sb-scroll::-webkit-scrollbar{width:0}
+.sb-section{padding:14px 8px 2px}
+.sb-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);padding:0 8px;margin-bottom:5px}
+.sb-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;cursor:pointer;color:var(--text2);font-size:12.5px;transition:all 0.12s;border:1px solid transparent}
+.sb-item:hover{background:var(--navy3);color:var(--text)}
+.sb-item.active{background:var(--navy4);color:var(--gold);border-color:var(--border2)}
+.sb-item i{font-size:14px;width:16px;text-align:center}
+.sb-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);margin-left:auto;display:none}
+.sb-item.active .sb-dot{display:block}
+.sb-bottom{padding:10px 8px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.sb-weekly-btn{width:100%;background:#c9a84c18;border:1px solid var(--gold);color:var(--gold);padding:8px 10px;border-radius:5px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;display:flex;align-items:center;gap:7px;transition:all 0.12s}
+.sb-weekly-btn:hover{background:#c9a84c28}
+
+/* ── SYNC STATUS BAR ── */
+#sync-bar{padding:6px 10px;border-radius:4px;font-size:11px;display:flex;align-items:center;gap:6px;transition:all 0.3s}
+#sync-bar.idle{background:var(--navy4);color:var(--text3)}
+#sync-bar.syncing{background:#4a9eff18;color:var(--blue);border:1px solid #4a9eff33}
+#sync-bar.saved{background:#2ecc8a18;color:var(--green);border:1px solid #2ecc8a33}
+#sync-bar.error{background:#e05c5c18;color:var(--red);border:1px solid #e05c5c33}
+#sync-bar i{font-size:13px}
+
+/* ── MAIN ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#topbar{background:var(--navy2);border-bottom:1px solid var(--border);padding:0 20px;height:50px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-title{font-family:'Playfair Display',serif;font-size:14px;color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.topbar-date{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace}
+.topbar-score{display:flex;align-items:center;gap:5px;background:var(--navy3);border:1px solid var(--border2);padding:3px 9px;border-radius:4px;font-size:11px;color:var(--text2)}
+.topbar-score span{color:var(--gold);font-weight:500;font-family:'DM Mono',monospace}
+#content{flex:1;overflow-y:auto;padding:18px 20px}
+#content::-webkit-scrollbar{width:3px}
+#content::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.page{display:none}.page.active{display:block}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+.page-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--text)}
+.page-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.btn-row{display:flex;gap:7px;flex-wrap:wrap}
+.entry-btn{display:inline-flex;align-items:center;gap:5px;background:var(--navy4);border:1px solid var(--border2);color:var(--text2);padding:5px 10px;border-radius:5px;font-size:11.5px;cursor:pointer;transition:all 0.12s;font-family:'DM Sans',sans-serif}
+.entry-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ── METRICS ── */
+.mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;margin-bottom:16px}
+.mc{background:var(--navy3);border:1px solid var(--border);border-radius:7px;padding:11px 12px}
+.mc-label{font-size:9.5px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px}
+.mc-value{font-size:20px;font-weight:500;font-family:'DM Mono',monospace;color:var(--text)}
+.mc-value.gold{color:var(--gold)}.mc-value.green{color:var(--green)}.mc-value.red{color:var(--red)}
+.mc-change{font-size:10px;color:var(--text3);margin-top:2px}
+.mc-change.up{color:var(--green)}.mc-change.dn{color:var(--red)}
+
+/* ── CARDS ── */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.cards.three{grid-template-columns:1fr 1fr 1fr}
+.card{background:var(--navy2);border:1px solid var(--border);border-radius:7px;padding:14px}
+.card-title{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.cr{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)}
+.cr:last-child{border-bottom:none}
+.cr-label{font-size:12.5px;color:var(--text2)}
+.cr-val{font-size:12.5px;font-family:'DM Mono',monospace;color:var(--text)}
+.cr-val.green{color:var(--green)}.cr-val.red{color:var(--red)}.cr-val.gold{color:var(--gold)}.cr-val.blue{color:var(--blue)}
+
+/* ── PROGRESS ── */
+.pb-wrap{margin:6px 0}
+.pb-label-row{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:3px}
+.pb{height:3px;background:var(--navy4);border-radius:2px;overflow:hidden}
+.pb-fill{height:100%;border-radius:2px;transition:width 0.4s}
+.pb-fill.gold{background:var(--gold)}.pb-fill.green{background:var(--green)}.pb-fill.blue{background:var(--blue)}.pb-fill.red{background:var(--red)}
+
+/* ── MISC ── */
+.tag{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10.5px;background:var(--navy4);color:var(--text2);border:1px solid var(--border)}
+.tag.green{background:#2ecc8a14;color:var(--green);border-color:#2ecc8a2a}
+.tag.gold{background:#c9a84c14;color:var(--gold);border-color:#c9a84c2a}
+.tag.blue{background:#4a9eff14;color:var(--blue);border-color:#4a9eff2a}
+.tag.red{background:#e05c5c14;color:var(--red);border-color:#e05c5c2a}
+.divider{height:1px;background:var(--border);margin:12px 0}
+.empty-state{padding:20px;text-align:center;color:var(--text3);font-size:13px}
+.score-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:5px;font-family:'DM Mono',monospace;font-size:12px}
+.score-badge.high{background:#2ecc8a18;color:var(--green);border:1px solid #2ecc8a33}
+.score-badge.mid{background:#f0a33018;color:var(--amber);border:1px solid #f0a33033}
+.score-badge.low{background:#e05c5c18;color:var(--red);border:1px solid #e05c5c33}
+.habit-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)}
+.habit-row:last-child{border-bottom:none}
+.habit-name{font-size:12.5px;color:var(--text2)}
+.habit-dots{display:flex;gap:3px}
+.hdot{width:9px;height:9px;border-radius:50%;background:var(--border2);cursor:pointer;transition:background 0.1s}
+.hdot.on{background:var(--green)}
+.event-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.event-item:last-child{border-bottom:none}
+.event-date-badge{min-width:38px;height:38px;background:var(--navy4);border:1px solid var(--border2);border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'DM Mono',monospace}
+.event-date-mo{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em}
+.event-date-day{font-size:15px;color:var(--gold);line-height:1}
+.event-content{flex:1}
+.event-title{font-size:13px;color:var(--text);margin-bottom:2px}
+.event-meta{font-size:11px;color:var(--text3)}
+.event-delete{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:2px 4px;opacity:0.5}
+.event-delete:hover{opacity:1;color:var(--red)}
+.chart-tabs{display:flex;gap:4px;margin-bottom:10px}
+.chart-tab{padding:4px 10px;border-radius:4px;font-size:11px;cursor:pointer;background:var(--navy4);color:var(--text3);border:1px solid var(--border);transition:all 0.12s}
+.chart-tab.active{background:var(--navy5);color:var(--gold);border-color:var(--border2)}
+.month-nav{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.month-nav button{background:var(--navy4);border:1px solid var(--border);color:var(--text2);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif}
+.month-nav button:hover{border-color:var(--gold);color:var(--gold)}
+.month-label{font-size:13px;color:var(--text);font-weight:500;min-width:100px;text-align:center}
+
+/* ── MODAL ── */
+#modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,10,20,0.85);z-index:100;display:none;align-items:center;justify-content:center}
+#modal-overlay.show{display:flex}
+#modal{background:var(--navy2);border:1px solid var(--border2);border-radius:10px;width:460px;max-height:82vh;overflow-y:auto}
+#modal::-webkit-scrollbar{width:3px}
+#modal::-webkit-scrollbar-thumb{background:var(--border2)}
+.modal-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--navy2);z-index:1}
+.modal-title{font-family:'Playfair Display',serif;font-size:15px}
+.modal-close{background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1;padding:0}
+.modal-body{padding:14px 18px}
+.form-group{margin-bottom:12px}
+.form-label{font-size:10px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;display:block}
+.form-input{width:100%;background:var(--navy3);border:1px solid var(--border2);border-radius:5px;padding:7px 9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
+.form-input:focus{border-color:var(--gold)}
+.form-section{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin:14px 0 8px;padding-top:8px;border-top:1px solid var(--border)}
+.btn-primary{background:var(--gold);color:var(--navy);border:none;padding:8px 18px;border-radius:5px;font-family:'DM Sans',sans-serif;font-weight:500;font-size:12.5px;cursor:pointer}
+.btn-primary:hover{background:var(--gold2)}
+.btn-secondary{background:var(--navy4);color:var(--text2);border:1px solid var(--border2);padding:8px 18px;border-radius:5px;font-family:'DM Sans',sans-serif;font-size:12.5px;cursor:pointer}
+.modal-footer{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:7px;justify-content:flex-end;position:sticky;bottom:0;background:var(--navy2)}
+
+/* ── WEEKLY REVIEW ── */
+#weekly-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,10,20,0.92);z-index:200;display:none;align-items:center;justify-content:center}
+#weekly-overlay.show{display:flex}
+#weekly-modal{background:var(--navy2);border:1px solid var(--border2);border-radius:10px;width:560px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column}
+.wm-header{padding:18px 22px 14px;border-bottom:1px solid var(--border)}
+.wm-step-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:3px}
+.wm-title{font-family:'Playfair Display',serif;font-size:19px}
+.wm-pb{height:2px;background:var(--border);margin-top:12px;border-radius:1px;overflow:hidden}
+.wm-pb-fill{height:100%;background:var(--gold);transition:width 0.25s;border-radius:1px}
+.wm-body{flex:1;overflow-y:auto;padding:18px 22px}
+.wm-body::-webkit-scrollbar{width:3px}
+.wm-body::-webkit-scrollbar-thumb{background:var(--border2)}
+.wm-footer{padding:12px 22px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.wm-dots{display:flex;gap:5px}
+.wm-dot{width:6px;height:6px;border-radius:50%;background:var(--border2)}
+.wm-dot.active{background:var(--gold)}
+
+/* ── CONFIG MODAL ── */
+#config-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,10,20,0.92);z-index:300;display:none;align-items:center;justify-content:center}
+#config-overlay.show{display:flex}
+#config-modal{background:var(--navy2);border:1px solid var(--gold);border-radius:10px;width:500px;padding:24px}
+.config-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--gold);margin-bottom:6px}
+.config-sub{font-size:12px;color:var(--text3);margin-bottom:20px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<!-- CONFIG SETUP MODAL -->
+<div id="config-overlay">
+  <div id="config-modal">
+    <div class="config-title">Connect to Google Sheets</div>
+    <div class="config-sub">Enter your credentials to connect the dashboard to your Google Sheets backend. These are stored locally in your browser only.</div>
+    <div class="form-group">
+      <label class="form-label">Google Sheets API Key</label>
+      <input class="form-input" id="cfg-apikey" placeholder="AIzaSy..." type="password">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Spreadsheet ID</label>
+      <input class="form-input" id="cfg-sheetid" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn-primary" onclick="saveConfig()">Connect & Load Dashboard</button>
+    </div>
+    <div id="cfg-status" style="margin-top:12px;font-size:12px;color:var(--text3);min-height:16px"></div>
+  </div>
+</div>
+
+<div id="app">
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-mark">EXECUTIVE OS</div>
+    <div class="sb-logo-sub">Life Command Center</div>
+  </div>
+  <div class="sb-scroll">
+    <div class="sb-section">
+      <div class="sb-label">Overview</div>
+      <div class="sb-item active" data-page="home"><i class="ti ti-layout-dashboard"></i>Home<div class="sb-dot"></div></div>
+      <div class="sb-item" data-page="trends"><i class="ti ti-chart-line"></i>Trend Charts<div class="sb-dot"></div></div>
+      <div class="sb-item" data-page="monthly"><i class="ti ti-calendar-stats"></i>Monthly Rollup<div class="sb-dot"></div></div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Professional</div>
+      <div class="sb-item" data-page="bnp"><i class="ti ti-building"></i>BNP Executive<div class="sb-dot"></div></div>
+      <div class="sb-item" data-page="meritas"><i class="ti ti-home-2"></i>Meritas<div class="sb-dot"></div></div>
+      <div class="sb-item" data-page="brand"><i class="ti ti-brand-linkedin"></i>Personal Brand<div class="sb-dot"></div></div>
+      <div class="sb-item" data-page="execution"><i class="ti ti-target"></i>Weekly Execution<div class="sb-dot"></div></div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Personal</div>
+      <div class="sb-item" data-page="financial"><i class="ti ti-chart-pie"></i>Financial<div class="sb-dot"></div></div>
+      <div class="sb-item" data-page="cashflow"><i class="ti ti-arrow-right-left"></i>Cash Flow<div class="sb-dot"></div></div>
+      <div class="sb-item" data-page="investments"><i class="ti ti-trending-up"></i>Investments<div class="sb-dot"></div></div>
+      <div class="sb-item" data-page="goals"><i class="ti ti-flag"></i>Goals<div class="sb-dot"></div></div>
+      <div class="sb-item" data-page="freedom"><i class="ti ti-key"></i>Freedom Metrics<div class="sb-dot"></div></div>
+      <div class="sb-item" data-page="familyops"><i class="ti ti-home-heart"></i>Family Ops<div class="sb-dot"></div></div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Health</div>
+      <div class="sb-item" data-page="health"><i class="ti ti-heart-rate"></i>Health Score<div class="sb-dot"></div></div>
+      <div class="sb-item" data-page="fitness"><i class="ti ti-barbell"></i>Fitness<div class="sb-dot"></div></div>
+      <div class="sb-item" data-page="nutrition"><i class="ti ti-apple"></i>Nutrition<div class="sb-dot"></div></div>
+      <div class="sb-item" data-page="habits"><i class="ti ti-check"></i>Habits<div class="sb-dot"></div></div>
+    </div>
+  </div>
+  <div class="sb-bottom">
+    <button class="sb-weekly-btn" onclick="openWeekly()"><i class="ti ti-clipboard-list"></i>Weekly Review</button>
+    <div id="sync-bar" class="idle"><i class="ti ti-cloud"></i><span id="sync-text">Connected to Sheets</span></div>
+    <button class="entry-btn" style="width:100%;justify-content:center" onclick="openConfig()"><i class="ti ti-settings"></i>Sheets Config</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <div class="topbar-title" id="topbar-title">Command Center</div>
+    <div class="topbar-right">
+      <div class="topbar-date" id="topbar-date"></div>
+      <div class="topbar-score">Week Score <span id="week-score-display">—</span></div>
+    </div>
+  </div>
+  <div id="content">
+
+    <div class="page active" id="page-home">
+      <div class="mg" id="home-metrics"></div>
+      <div class="cards" id="home-cards"></div>
+      <div class="cards" id="home-cards2"></div>
+    </div>
+
+    <div class="page" id="page-trends">
+      <div class="page-header"><div><div class="page-title">Trend Charts</div><div class="page-sub">Historical performance — populated from monthly snapshots</div></div></div>
+      <div class="chart-tabs" id="trend-tabs"></div>
+      <div id="trend-content"></div>
+    </div>
+
+    <div class="page" id="page-monthly">
+      <div class="page-header">
+        <div><div class="page-title">Monthly Rollup</div><div class="page-sub">One snapshot per month saved to MONTHLY_SNAPSHOTS tab</div></div>
+        <button class="entry-btn" onclick="saveMonthlySnapshot()"><i class="ti ti-device-floppy"></i>Save This Month</button>
+      </div>
+      <div class="month-nav">
+        <button onclick="changeMonth(-1)">← Prev</button>
+        <div class="month-label" id="month-label"></div>
+        <button onclick="changeMonth(1)">Next →</button>
+      </div>
+      <div id="monthly-content"></div>
+    </div>
+
+    <div class="page" id="page-bnp">
+      <div class="page-header"><div><div class="page-title">BNP Executive</div><div class="page-sub">Revenue, sales & marketing — writes to BNP_WEEKLY</div></div><button class="entry-btn" onclick="openModal('bnp')"><i class="ti ti-pencil"></i>Log This Week</button></div>
+      <div class="mg" id="bnp-metrics"></div><div class="cards three" id="bnp-cards"></div>
+    </div>
+
+    <div class="page" id="page-meritas">
+      <div class="page-header"><div><div class="page-title">Meritas</div><div class="page-sub">Deals, investors & advisory — writes to MERITAS_WEEKLY</div></div><button class="entry-btn" onclick="openModal('meritas')"><i class="ti ti-pencil"></i>Log This Week</button></div>
+      <div class="mg" id="meritas-metrics"></div><div class="cards three" id="meritas-cards"></div>
+    </div>
+
+    <div class="page" id="page-brand">
+      <div class="page-header"><div><div class="page-title">Personal Brand</div><div class="page-sub">Content & audience — writes to BRAND_WEEKLY</div></div><button class="entry-btn" onclick="openModal('brand')"><i class="ti ti-pencil"></i>Log This Week</button></div>
+      <div class="mg" id="brand-metrics"></div><div class="cards" id="brand-cards"></div>
+    </div>
+
+    <div class="page" id="page-execution">
+      <div class="page-header"><div><div class="page-title">Weekly Execution</div><div class="page-sub">Priorities, wins & scores — writes to EXECUTION_WEEKLY</div></div><button class="entry-btn" onclick="openWeekly()"><i class="ti ti-clipboard-list"></i>Weekly Review</button></div>
+      <div class="cards three" id="exec-cards"></div><div class="mg" id="exec-scores"></div>
+    </div>
+
+    <div class="page" id="page-financial">
+      <div class="page-header"><div><div class="page-title">Financial Snapshot</div><div class="page-sub">Net worth & balance sheet — writes to FINANCIAL_SNAPSHOT</div></div><button class="entry-btn" onclick="openModal('financial')"><i class="ti ti-pencil"></i>Update Figures</button></div>
+      <div class="mg" id="fin-metrics"></div><div class="cards three" id="fin-cards"></div>
+    </div>
+
+    <div class="page" id="page-cashflow">
+      <div class="page-header"><div><div class="page-title">Monthly Cash Flow</div><div class="page-sub">Inflows & outflows — writes to CASH_FLOW</div></div><button class="entry-btn" onclick="openModal('cashflow')"><i class="ti ti-pencil"></i>Update Cash Flow</button></div>
+      <div class="mg" id="cf-metrics"></div><div class="cards three" id="cf-cards"></div>
+    </div>
+
+    <div class="page" id="page-investments">
+      <div class="page-header"><div><div class="page-title">Investments & Wealth</div><div class="page-sub">Portfolio values — writes to INVESTMENTS</div></div><button class="entry-btn" onclick="openModal('investments')"><i class="ti ti-pencil"></i>Update Portfolio</button></div>
+      <div class="mg" id="inv-metrics"></div><div class="cards" id="inv-cards"></div>
+    </div>
+
+    <div class="page" id="page-goals">
+      <div class="page-header"><div><div class="page-title">Family Goals</div><div class="page-sub">Goal progress — writes to GOALS tab</div></div>
+        <div class="btn-row"><button class="entry-btn" onclick="openModal('addgoal')"><i class="ti ti-plus"></i>Add Goal</button><button class="entry-btn" onclick="openModal('goals')"><i class="ti ti-pencil"></i>Update Progress</button></div>
+      </div>
+      <div id="goals-list"></div>
+    </div>
+
+    <div class="page" id="page-freedom">
+      <div class="page-header"><div><div class="page-title">Freedom Metrics</div><div class="page-sub">FI progress — writes to FREEDOM_METRICS</div></div><button class="entry-btn" onclick="openModal('freedom')"><i class="ti ti-pencil"></i>Update Metrics</button></div>
+      <div class="mg" id="freedom-metrics"></div><div class="cards" id="freedom-cards"></div>
+    </div>
+
+    <div class="page" id="page-familyops">
+      <div class="page-header"><div><div class="page-title">Family Ops</div><div class="page-sub">Events & deadlines — writes to FAMILY_EVENTS</div></div><button class="entry-btn" onclick="openModal('addevent')"><i class="ti ti-plus"></i>Add Event</button></div>
+      <div class="cards" id="familyops-cards"></div>
+      <div class="card" id="familyops-events"></div>
+    </div>
+
+    <div class="page" id="page-health">
+      <div class="page-header"><div><div class="page-title">Health Scoreboard</div><div class="page-sub">Biometrics & scores — writes to HEALTH_WEEKLY</div></div><button class="entry-btn" onclick="openModal('health')"><i class="ti ti-pencil"></i>Log This Week</button></div>
+      <div class="mg" id="health-metrics"></div><div class="cards" id="health-cards"></div>
+    </div>
+
+    <div class="page" id="page-fitness">
+      <div class="page-header"><div><div class="page-title">Fitness Performance</div><div class="page-sub">Workouts & activity — writes to FITNESS_WEEKLY</div></div><button class="entry-btn" onclick="openModal('fitness')"><i class="ti ti-pencil"></i>Log This Week</button></div>
+      <div class="mg" id="fitness-metrics"></div><div class="cards" id="fitness-cards"></div>
+    </div>
+
+    <div class="page" id="page-nutrition">
+      <div class="page-header"><div><div class="page-title">Nutrition</div><div class="page-sub">Daily intake — writes to NUTRITION_WEEKLY</div></div><button class="entry-btn" onclick="openModal('nutrition')"><i class="ti ti-pencil"></i>Log This Week</button></div>
+      <div class="mg" id="nutrition-metrics"></div><div class="cards" id="nutrition-cards"></div>
+    </div>
+
+    <div class="page" id="page-habits">
+      <div class="page-header"><div><div class="page-title">Habits & Discipline</div><div class="page-sub">7-day tracker — stored locally</div></div></div>
+      <div class="card" style="margin-bottom:12px"><div class="card-title">This Week</div><div id="habits-tracker"></div></div>
+      <div class="mg" id="habits-metrics"></div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div id="modal">
+    <div class="modal-header"><div class="modal-title" id="modal-title">Log Data</div><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal()">Cancel</button><button class="btn-primary" onclick="saveModal()">Save to Sheets</button></div>
+  </div>
+</div>
+
+<!-- WEEKLY REVIEW -->
+<div id="weekly-overlay">
+  <div id="weekly-modal">
+    <div class="wm-header">
+      <div class="wm-step-label" id="wm-step-label">Step 1 of 7</div>
+      <div class="wm-title" id="wm-title"></div>
+      <div class="wm-pb"><div class="wm-pb-fill" id="wm-progress"></div></div>
+    </div>
+    <div class="wm-body" id="wm-body"></div>
+    <div class="wm-footer">
+      <button class="btn-secondary" id="wm-prev" onclick="wmPrev()">← Back</button>
+      <div class="wm-dots" id="wm-dots"></div>
+      <button class="btn-primary" id="wm-next" onclick="wmNext()">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// CONFIGURATION
+// ═══════════════════════════════════════════════════════════════════════════════
+let CFG = {
+  apiKey: localStorage.getItem('eos_apikey') || 'AIzaSyCBItke0UYD01PyVQnn15r8wwY411uyz_w',
+  sheetId: localStorage.getItem('eos_sheetid') || '1mVUj4mAJHWOVbxehRmdUCDUwuNrFpL9Tm9iYVFQUcXg'
+};
+
+const SHEETS_BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS = ['M','T','W','T','F','S','S'];
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATE — mirrors Google Sheets tabs exactly
+// ═══════════════════════════════════════════════════════════════════════════════
+let S = {
+  bnp:{revGoal:500000,revActual:0,sponsorship:0,membership:0,events:0,retention:0,pipeline:0,proposals:0,closeRate:0,meetings:0,outreach:0,discovery:0,emailsSent:0,socialPosts:0,openRate:0,ctr:0,traffic:0,weekDate:''},
+  meritas:{brokersContacted:0,brokerMeetings:0,dealsReviewed:0,dealsUnderwritten:0,loisSubmitted:0,activeOpps:0,investorMeetings:0,newInvestors:0,softCommits:0,hardCommits:0,capitalRaised:0,advisoryClients:0,advisoryRevenue:0,coiMeetings:0,newCOIs:0,weekDate:''},
+  brand:{postsPerWeek:0,linkedinFollowers:0,profileViews:0,inboundMessages:0,podcastInvitations:0,speakingOpps:0,consultingInquiries:0,investorInbound:0,referralsGenerated:0,weekDate:''},
+  execution:{priority1:'',priority2:'',priority3:'',criticalMeetings:'',keyFollowups:'',bottlenecks:'',win1:'',win2:'',win3:'',miss1:'',miss2:'',scoreFitness:0,scoreNutrition:0,scoreRecovery:0,scoreDiscipline:0,scoreEnergy:0,scoreOverall:0,weekDate:''},
+  financial:{netWorth:0,cashOnHand:0,emergencyReserves:0,totalIncome:0,passiveIncome:0,rentalIncome:0,advisoryIncome:0,mortgageBalance:0,carLoans:0,creditCards:0,investmentDebt:0,monthDate:''},
+  cashflow:{salary:0,rental:0,advisory:0,distributions:0,bonuses:0,mortgage:0,utilities:0,insurance:0,carPayments:0,childcare:0,subscriptions:0,restaurants:0,entertainment:0,travel:0,shopping:0,brokerageContribs:0,savingsTransfers:0,monthDate:''},
+  investments:{prop1Name:'Property 1',prop1Value:0,prop1Equity:0,prop1Cashflow:0,prop2Name:'Property 2',prop2Value:0,prop2Equity:0,prop2Cashflow:0,brokerage:0,retirement:0,privateInvestments:0,cashYields:0,monthlyPassive:0,monthDate:''},
+  goals:[],
+  freedom:{monthsExpensesCovered:0,passiveIncomeCoverage:0,financialIndependencePct:0,liquidRunway:0,workOptionalDate:'2030-01',monthDate:''},
+  familyEvents:[],
+  health:{weight:0,energyScore:0,sleepQuality:0,stressScore:0,workoutConsistency:0,physicalCompleted:false,bloodworkCompleted:false,dentistCompleted:false,visionCompleted:false,weekDate:''},
+  fitness:{strengthWorkouts:0,racquetballSessions:0,cardioSessions:0,steps:0,targetWorkoutsPerWeek:5,weekDate:''},
+  nutrition:{calories:0,protein:0,water:0,alcohol:0,daysOnPlan:0,calGoal:2200,proteinGoal:180,waterGoal:128,weekDate:''},
+  habits:{weeklyPlanning:[false,false,false,false,false,false,false],workouts:[false,false,false,false,false,false,false],waterGoal:[false,false,false,false,false,false,false],nutritionAdherence:[false,false,false,false,false,false,false],contentPosted:[false,false,false,false,false,false,false],familyTime:[false,false,false,false,false,false,false],reading:[false,false,false,false,false,false,false]},
+  scores:{fitness:0,nutrition:0,recovery:0,discipline:0,energy:0},
+  monthlySnapshots:{}
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SHEETS API — READ / WRITE / APPEND
+// ═══════════════════════════════════════════════════════════════════════════════
+function setSyncStatus(status, text) {
+  const bar = document.getElementById('sync-bar');
+  const txt = document.getElementById('sync-text');
+  bar.className = status;
+  txt.textContent = text;
+  if (status === 'saved') setTimeout(() => setSyncStatus('idle', 'Connected to Sheets'), 3000);
+}
+
+async function sheetsRead(tab, range) {
+  if (!CFG.apiKey || !CFG.sheetId) return null;
+  try {
+    const url = `${SHEETS_BASE}/${CFG.sheetId}/values/${encodeURIComponent(tab + '!' + range)}?key=${CFG.apiKey}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    return data.values || [];
+  } catch(e) {
+    console.error('Sheets read error:', e);
+    setSyncStatus('error', 'Read failed');
+    return null;
+  }
+}
+
+async function sheetsAppend(tab, values) {
+  if (!CFG.apiKey || !CFG.sheetId) return false;
+  setSyncStatus('syncing', 'Saving to Sheets...');
+  try {
+    const url = `${SHEETS_BASE}/${CFG.sheetId}/values/${encodeURIComponent(tab + '!A1')}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS&key=${CFG.apiKey}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({values: [values]})
+    });
+    if (!res.ok) throw new Error(await res.text());
+    setSyncStatus('saved', 'Saved to Sheets ✓');
+    return true;
+  } catch(e) {
+    console.error('Sheets append error:', e);
+    setSyncStatus('error', 'Save failed — check config');
+    return false;
+  }
+}
+
+async function sheetsUpdate(tab, range, values) {
+  if (!CFG.apiKey || !CFG.sheetId) return false;
+  setSyncStatus('syncing', 'Updating Sheets...');
+  try {
+    const url = `${SHEETS_BASE}/${CFG.sheetId}/values/${encodeURIComponent(tab + '!' + range)}?valueInputOption=USER_ENTERED&key=${CFG.apiKey}`;
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({values})
+    });
+    if (!res.ok) throw new Error(await res.text());
+    setSyncStatus('saved', 'Updated in Sheets ✓');
+    return true;
+  } catch(e) {
+    console.error('Sheets update error:', e);
+    setSyncStatus('error', 'Update failed — check config');
+    return false;
+  }
+}
+
+// Find the row number for the current week/month in a tab
+async function findRowForDate(tab, dateStr) {
+  const rows = await sheetsRead(tab, 'A:A');
+  if (!rows) return -1;
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i] && rows[i][0] === dateStr) return i + 1; // 1-based
+  }
+  return -1;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DATE HELPERS
+// ═══════════════════════════════════════════════════════════════════════════════
+function getMondayDate() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const mon = new Date(d.setDate(diff));
+  return mon.toISOString().split('T')[0];
+}
+
+function getMonthFirstDate() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;
+}
+
+function getMonthLabel(offset=0) {
+  const d = new Date();
+  d.setMonth(d.getMonth() + offset);
+  return MONTHS_SHORT[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// LOAD STATE FROM SHEETS ON INIT
+// ═══════════════════════════════════════════════════════════════════════════════
+async function loadAllFromSheets() {
+  if (!CFG.apiKey || !CFG.sheetId) return;
+  setSyncStatus('syncing', 'Loading from Sheets...');
+
+  const weekDate = getMondayDate();
+  const monthDate = getMonthFirstDate();
+
+  // Helper: parse last row of a tab
+  async function lastRow(tab, cols) {
+    const rows = await sheetsRead(tab, `A:${cols}`);
+    if (!rows || rows.length < 2) return null;
+    return rows[rows.length - 1];
+  }
+
+  // BNP_WEEKLY — columns A:U
+  const bnpRow = await lastRow('BNP_WEEKLY', 'U');
+  if (bnpRow && bnpRow.length > 1) {
+    S.bnp = {weekDate:bnpRow[0]||'',revGoal:+bnpRow[2]||0,revActual:+bnpRow[3]||0,
+      sponsorship:+bnpRow[4]||0,membership:+bnpRow[5]||0,events:+bnpRow[6]||0,
+      retention:+bnpRow[7]||0,pipeline:+bnpRow[8]||0,proposals:+bnpRow[9]||0,
+      closeRate:+bnpRow[10]||0,meetings:+bnpRow[11]||0,outreach:+bnpRow[12]||0,
+      discovery:+bnpRow[13]||0,emailsSent:+bnpRow[14]||0,socialPosts:+bnpRow[15]||0,
+      openRate:+bnpRow[16]||0,ctr:+bnpRow[17]||0,traffic:+bnpRow[18]||0};
+  }
+
+  // MERITAS_WEEKLY — columns A:R
+  const merRow = await lastRow('MERITAS_WEEKLY', 'R');
+  if (merRow && merRow.length > 1) {
+    S.meritas = {weekDate:merRow[0]||'',brokersContacted:+merRow[2]||0,brokerMeetings:+merRow[3]||0,
+      dealsReviewed:+merRow[4]||0,dealsUnderwritten:+merRow[5]||0,loisSubmitted:+merRow[6]||0,
+      activeOpps:+merRow[7]||0,investorMeetings:+merRow[8]||0,newInvestors:+merRow[9]||0,
+      softCommits:+merRow[11]||0,hardCommits:+merRow[12]||0,capitalRaised:+merRow[13]||0,
+      advisoryClients:+merRow[14]||0,advisoryRevenue:+merRow[15]||0,
+      coiMeetings:+merRow[16]||0,newCOIs:+merRow[17]||0};
+  }
+
+  // BRAND_WEEKLY — columns A:K
+  const brandRow = await lastRow('BRAND_WEEKLY', 'K');
+  if (brandRow && brandRow.length > 1) {
+    S.brand = {weekDate:brandRow[0]||'',postsPerWeek:+brandRow[1]||0,
+      linkedinFollowers:+brandRow[2]||0,profileViews:+brandRow[3]||0,
+      inboundMessages:+brandRow[4]||0,podcastInvitations:+brandRow[5]||0,
+      speakingOpps:+brandRow[6]||0,consultingInquiries:+brandRow[7]||0,
+      investorInbound:+brandRow[8]||0,referralsGenerated:+brandRow[9]||0};
+  }
+
+  // EXECUTION_WEEKLY — columns A:S
+  const execRow = await lastRow('EXECUTION_WEEKLY', 'S');
+  if (execRow && execRow.length > 1) {
+    S.execution = {weekDate:execRow[0]||'',priority1:execRow[1]||'',priority2:execRow[2]||'',
+      priority3:execRow[3]||'',criticalMeetings:execRow[4]||'',keyFollowups:execRow[5]||'',
+      bottlenecks:execRow[6]||'',win1:execRow[7]||'',win2:execRow[8]||'',win3:execRow[9]||'',
+      miss1:execRow[10]||'',miss2:execRow[11]||'',
+      scoreFitness:+execRow[12]||0,scoreNutrition:+execRow[13]||0,scoreRecovery:+execRow[14]||0,
+      scoreDiscipline:+execRow[15]||0,scoreEnergy:+execRow[16]||0,scoreOverall:+execRow[17]||0};
+    S.scores = {fitness:S.execution.scoreFitness,nutrition:S.execution.scoreNutrition,
+      recovery:S.execution.scoreRecovery,discipline:S.execution.scoreDiscipline,energy:S.execution.scoreEnergy};
+  }
+
+  // FINANCIAL_SNAPSHOT — columns A:O
+  const finRow = await lastRow('FINANCIAL_SNAPSHOT', 'O');
+  if (finRow && finRow.length > 1) {
+    S.financial = {monthDate:finRow[0]||'',netWorth:+finRow[1]||0,cashOnHand:+finRow[2]||0,
+      emergencyReserves:+finRow[3]||0,totalIncome:+finRow[4]||0,passiveIncome:+finRow[5]||0,
+      rentalIncome:+finRow[6]||0,advisoryIncome:+finRow[7]||0,mortgageBalance:+finRow[8]||0,
+      carLoans:+finRow[9]||0,creditCards:+finRow[10]||0,investmentDebt:+finRow[11]||0};
+  }
+
+  // CASH_FLOW — columns A:Z
+  const cfRow = await lastRow('CASH_FLOW', 'Z');
+  if (cfRow && cfRow.length > 1) {
+    S.cashflow = {monthDate:cfRow[0]||'',salary:+cfRow[1]||0,rental:+cfRow[2]||0,
+      advisory:+cfRow[3]||0,distributions:+cfRow[4]||0,bonuses:+cfRow[5]||0,
+      mortgage:+cfRow[7]||0,utilities:+cfRow[8]||0,insurance:+cfRow[9]||0,
+      carPayments:+cfRow[10]||0,childcare:+cfRow[11]||0,subscriptions:+cfRow[12]||0,
+      restaurants:+cfRow[14]||0,entertainment:+cfRow[15]||0,travel:+cfRow[16]||0,
+      shopping:+cfRow[17]||0,brokerageContribs:+cfRow[19]||0,savingsTransfers:+cfRow[20]||0};
+  }
+
+  // INVESTMENTS — columns A:R
+  const invRow = await lastRow('INVESTMENTS', 'R');
+  if (invRow && invRow.length > 1) {
+    S.investments = {monthDate:invRow[0]||'',prop1Name:invRow[1]||'Property 1',
+      prop1Value:+invRow[2]||0,prop1Equity:+invRow[3]||0,prop1Cashflow:+invRow[4]||0,
+      prop2Name:invRow[5]||'Property 2',prop2Value:+invRow[6]||0,prop2Equity:+invRow[7]||0,
+      prop2Cashflow:+invRow[8]||0,brokerage:+invRow[11]||0,retirement:+invRow[12]||0,
+      privateInvestments:+invRow[13]||0,cashYields:+invRow[14]||0,monthlyPassive:+invRow[16]||0};
+  }
+
+  // GOALS — all rows
+  const goalRows = await sheetsRead('GOALS', 'A:L');
+  if (goalRows && goalRows.length > 2) {
+    S.goals = goalRows.slice(2)
+      .filter(r => r && r[1] && r[9] !== 'FALSE')
+      .map(r => ({
+        id: r[0]||'', name: r[1]||'', target: +r[2]||0, current: +r[3]||0,
+        date: r[4]||'', category: r[5]||'', notes: r[10]||'',
+        isActive: r[9] !== 'FALSE', rowIndex: goalRows.indexOf(r) + 1
+      }));
+  }
+
+  // FREEDOM_METRICS — columns A:H
+  const frRow = await lastRow('FREEDOM_METRICS', 'H');
+  if (frRow && frRow.length > 1) {
+    S.freedom = {monthDate:frRow[0]||'',monthsExpensesCovered:+frRow[1]||0,
+      passiveIncomeCoverage:+frRow[2]||0,financialIndependencePct:+frRow[3]||0,
+      liquidRunway:+frRow[4]||0,workOptionalDate:frRow[5]||'2030-01'};
+  }
+
+  // FAMILY_EVENTS — all rows
+  const evRows = await sheetsRead('FAMILY_EVENTS', 'A:H');
+  if (evRows && evRows.length > 2) {
+    S.familyEvents = evRows.slice(2)
+      .filter(r => r && r[1] && r[5] !== 'TRUE')
+      .map((r,i) => ({
+        id: r[0]||String(i), title: r[1]||'', date: r[2]||'',
+        category: r[3]||'Other', notes: r[4]||'',
+        rowIndex: evRows.indexOf(r) + 1
+      }));
+  }
+
+  // HEALTH_WEEKLY
+  const healthRow = await lastRow('HEALTH_WEEKLY', 'K');
+  if (healthRow && healthRow.length > 1) {
+    S.health = {weekDate:healthRow[0]||'',weight:+healthRow[1]||0,energyScore:+healthRow[2]||0,
+      sleepQuality:+healthRow[3]||0,stressScore:+healthRow[4]||0,
+      workoutConsistency:+healthRow[5]||0,physicalCompleted:healthRow[6]==='TRUE',
+      bloodworkCompleted:healthRow[7]==='TRUE',dentistCompleted:healthRow[8]==='TRUE',
+      visionCompleted:healthRow[9]==='TRUE'};
+  }
+
+  // FITNESS_WEEKLY
+  const fitRow = await lastRow('FITNESS_WEEKLY', 'H');
+  if (fitRow && fitRow.length > 1) {
+    S.fitness = {weekDate:fitRow[0]||'',strengthWorkouts:+fitRow[1]||0,
+      racquetballSessions:+fitRow[2]||0,cardioSessions:+fitRow[3]||0,
+      steps:+fitRow[4]||0,targetWorkoutsPerWeek:+fitRow[5]||5};
+  }
+
+  // NUTRITION_WEEKLY
+  const nutRow = await lastRow('NUTRITION_WEEKLY', 'L');
+  if (nutRow && nutRow.length > 1) {
+    S.nutrition = {weekDate:nutRow[0]||'',calories:+nutRow[1]||0,protein:+nutRow[2]||0,
+      water:+nutRow[3]||0,alcohol:+nutRow[4]||0,daysOnPlan:+nutRow[5]||0,
+      calGoal:+nutRow[6]||2200,proteinGoal:+nutRow[7]||180,waterGoal:+nutRow[8]||128};
+  }
+
+  // MONTHLY_SNAPSHOTS — all rows for trends
+  const snapRows = await sheetsRead('MONTHLY_SNAPSHOTS', 'A:Q');
+  if (snapRows && snapRows.length > 3) {
+    snapRows.slice(3).forEach(r => {
+      if (r && r[0]) S.monthlySnapshots[r[0]] = {
+        netWorth:+r[2]||0, totalInflows:+r[3]||0, totalOutflows:+r[4]||0,
+        netCashFlow:+r[5]||0, bnpRevenue:+r[6]||0, pipeline:+r[7]||0,
+        capitalRaised:+r[8]||0, advisoryRevenue:+r[9]||0, passiveIncome:+r[10]||0,
+        fiPct:+r[11]||0, weekScore:+r[12]||0, weight:+r[13]||0,
+        linkedinFollowers:+r[14]||0, workoutConsistency:+r[15]||0, savedAt:r[16]||''
+      };
+    });
+  }
+
+  // Load habits from localStorage (habits are local-only)
+  const savedHabits = localStorage.getItem('eos_habits');
+  if (savedHabits) S.habits = JSON.parse(savedHabits);
+
+  setSyncStatus('saved', 'Loaded from Sheets ✓');
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WRITE FUNCTIONS — one per Sheets tab
+// ═══════════════════════════════════════════════════════════════════════════════
+async function writeBNP() {
+  const d = getMondayDate();
+  const row = [d, `=WEEKNUM(A${await getNextRow('BNP_WEEKLY')})`,
+    S.bnp.revGoal, S.bnp.revActual, S.bnp.sponsorship, S.bnp.membership,
+    S.bnp.events, S.bnp.retention, S.bnp.pipeline, S.bnp.proposals,
+    S.bnp.closeRate, S.bnp.meetings, S.bnp.outreach, S.bnp.discovery,
+    S.bnp.emailsSent, S.bnp.socialPosts, S.bnp.openRate, S.bnp.ctr, S.bnp.traffic,
+    `=D${await getNextRow('BNP_WEEKLY')}/C${await getNextRow('BNP_WEEKLY')}`,
+    `=E${await getNextRow('BNP_WEEKLY')}+F${await getNextRow('BNP_WEEKLY')}+G${await getNextRow('BNP_WEEKLY')}`];
+  return sheetsAppend('BNP_WEEKLY', [d, '', S.bnp.revGoal, S.bnp.revActual,
+    S.bnp.sponsorship, S.bnp.membership, S.bnp.events, S.bnp.retention,
+    S.bnp.pipeline, S.bnp.proposals, S.bnp.closeRate, S.bnp.meetings,
+    S.bnp.outreach, S.bnp.discovery, S.bnp.emailsSent, S.bnp.socialPosts,
+    S.bnp.openRate, S.bnp.ctr, S.bnp.traffic]);
+}
+
+async function getNextRow(tab) {
+  const rows = await sheetsRead(tab, 'A:A');
+  return rows ? rows.length + 1 : 3;
+}
+
+async function writeMeritas() {
+  return sheetsAppend('MERITAS_WEEKLY', [getMondayDate(), '',
+    S.meritas.brokersContacted, S.meritas.brokerMeetings, S.meritas.dealsReviewed,
+    S.meritas.dealsUnderwritten, S.meritas.loisSubmitted, S.meritas.activeOpps,
+    S.meritas.investorMeetings, S.meritas.newInvestors, '',
+    S.meritas.softCommits, S.meritas.hardCommits, S.meritas.capitalRaised,
+    S.meritas.advisoryClients, S.meritas.advisoryRevenue,
+    S.meritas.coiMeetings, S.meritas.newCOIs]);
+}
+
+async function writeBrand() {
+  return sheetsAppend('BRAND_WEEKLY', [getMondayDate(),
+    S.brand.postsPerWeek, S.brand.linkedinFollowers, S.brand.profileViews,
+    S.brand.inboundMessages, S.brand.podcastInvitations, S.brand.speakingOpps,
+    S.brand.consultingInquiries, S.brand.investorInbound, S.brand.referralsGenerated]);
+}
+
+async function writeExecution() {
+  return sheetsAppend('EXECUTION_WEEKLY', [getMondayDate(),
+    S.execution.priority1, S.execution.priority2, S.execution.priority3,
+    S.execution.criticalMeetings, S.execution.keyFollowups, S.execution.bottlenecks,
+    S.execution.win1, S.execution.win2, S.execution.win3,
+    S.execution.miss1, S.execution.miss2,
+    S.scores.fitness, S.scores.nutrition, S.scores.recovery,
+    S.scores.discipline, S.scores.energy, S.execution.scoreOverall]);
+}
+
+async function writeFinancial() {
+  return sheetsAppend('FINANCIAL_SNAPSHOT', [getMonthFirstDate(),
+    S.financial.netWorth, S.financial.cashOnHand, S.financial.emergencyReserves,
+    S.financial.totalIncome, S.financial.passiveIncome, S.financial.rentalIncome,
+    S.financial.advisoryIncome, S.financial.mortgageBalance, S.financial.carLoans,
+    S.financial.creditCards, S.financial.investmentDebt]);
+}
+
+async function writeCashflow() {
+  return sheetsAppend('CASH_FLOW', [getMonthFirstDate(),
+    S.cashflow.salary, S.cashflow.rental, S.cashflow.advisory,
+    S.cashflow.distributions, S.cashflow.bonuses, '',
+    S.cashflow.mortgage, S.cashflow.utilities, S.cashflow.insurance,
+    S.cashflow.carPayments, S.cashflow.childcare, S.cashflow.subscriptions, '',
+    S.cashflow.restaurants, S.cashflow.entertainment, S.cashflow.travel,
+    S.cashflow.shopping, '', S.cashflow.brokerageContribs, S.cashflow.savingsTransfers]);
+}
+
+async function writeInvestments() {
+  return sheetsAppend('INVESTMENTS', [getMonthFirstDate(),
+    S.investments.prop1Name, S.investments.prop1Value, S.investments.prop1Equity,
+    S.investments.prop1Cashflow, S.investments.prop2Name, S.investments.prop2Value,
+    S.investments.prop2Equity, S.investments.prop2Cashflow, '', '',
+    S.investments.brokerage, S.investments.retirement,
+    S.investments.privateInvestments, S.investments.cashYields, '',
+    S.investments.monthlyPassive]);
+}
+
+async function writeGoal(goal, isNew) {
+  if (isNew) {
+    const nextId = S.goals.length + 1;
+    return sheetsAppend('GOALS', [nextId, goal.name, goal.target, goal.current,
+      goal.date, goal.category || 'Other', '', '', '', 'TRUE', goal.notes || '', getMonthFirstDate()]);
+  } else {
+    const range = `A${goal.rowIndex}:L${goal.rowIndex}`;
+    return sheetsUpdate('GOALS', range, [[goal.id, goal.name, goal.target,
+      goal.current, goal.date, goal.category, '', '', '', 'TRUE', goal.notes, '']]);
+  }
+}
+
+async function writeFreedom() {
+  return sheetsAppend('FREEDOM_METRICS', [getMonthFirstDate(),
+    S.freedom.monthsExpensesCovered, S.freedom.passiveIncomeCoverage,
+    S.freedom.financialIndependencePct, S.freedom.liquidRunway,
+    S.freedom.workOptionalDate]);
+}
+
+async function writeEvent(event) {
+  return sheetsAppend('FAMILY_EVENTS', [
+    'EVT' + Date.now(), event.title, event.date,
+    event.category, event.notes, 'FALSE', '', new Date().toISOString().split('T')[0]]);
+}
+
+async function writeHealth() {
+  return sheetsAppend('HEALTH_WEEKLY', [getMondayDate(),
+    S.health.weight, S.health.energyScore, S.health.sleepQuality,
+    S.health.stressScore, S.health.workoutConsistency,
+    S.health.physicalCompleted, S.health.bloodworkCompleted,
+    S.health.dentistCompleted, S.health.visionCompleted]);
+}
+
+async function writeFitness() {
+  return sheetsAppend('FITNESS_WEEKLY', [getMondayDate(),
+    S.fitness.strengthWorkouts, S.fitness.racquetballSessions,
+    S.fitness.cardioSessions, S.fitness.steps, S.fitness.targetWorkoutsPerWeek]);
+}
+
+async function writeNutrition() {
+  return sheetsAppend('NUTRITION_WEEKLY', [getMondayDate(),
+    S.nutrition.calories, S.nutrition.protein, S.nutrition.water,
+    S.nutrition.alcohol, S.nutrition.daysOnPlan,
+    S.nutrition.calGoal, S.nutrition.proteinGoal, S.nutrition.waterGoal]);
+}
+
+async function saveMonthlySnapshot() {
+  const label = getMonthLabel(0);
+  const totalIn = S.cashflow.salary+S.cashflow.rental+S.cashflow.advisory+S.cashflow.distributions+S.cashflow.bonuses;
+  const totalOut = S.cashflow.mortgage+S.cashflow.utilities+S.cashflow.insurance+S.cashflow.carPayments+S.cashflow.childcare+S.cashflow.subscriptions+S.cashflow.restaurants+S.cashflow.entertainment+S.cashflow.travel+S.cashflow.shopping;
+  const sc = S.scores;
+  const avg = [sc.fitness,sc.nutrition,sc.recovery,sc.discipline,sc.energy].filter(v=>v>0);
+  const weekScoreAvg = avg.length ? Math.round(avg.reduce((a,b)=>a+b,0)/avg.length*10)/10 : 0;
+  const total = S.fitness.strengthWorkouts+S.fitness.racquetballSessions+S.fitness.cardioSessions;
+  const consistency = S.fitness.targetWorkoutsPerWeek>0 ? Math.round(total/S.fitness.targetWorkoutsPerWeek*100) : 0;
+
+  const ok = await sheetsAppend('MONTHLY_SNAPSHOTS', [
+    label, new Date().toISOString().split('T')[0],
+    S.financial.netWorth, totalIn, totalOut, totalIn-totalOut,
+    S.bnp.revActual, S.bnp.pipeline, S.meritas.capitalRaised,
+    S.meritas.advisoryRevenue, S.financial.passiveIncome,
+    S.freedom.financialIndependencePct, weekScoreAvg,
+    S.health.weight, S.brand.linkedinFollowers, consistency,
+    new Date().toISOString()
+  ]);
+  if (ok) {
+    S.monthlySnapshots[label] = {netWorth:S.financial.netWorth,totalInflows:totalIn,totalOutflows:totalOut,netCashFlow:totalIn-totalOut,bnpRevenue:S.bnp.revActual,pipeline:S.bnp.pipeline,capitalRaised:S.meritas.capitalRaised,advisoryRevenue:S.meritas.advisoryRevenue,passiveIncome:S.financial.passiveIncome,fiPct:S.freedom.financialIndependencePct,weekScore:weekScoreAvg,weight:S.health.weight,linkedinFollowers:S.brand.linkedinFollowers,workoutConsistency:consistency};
+    renderPage('monthly');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════════════════════════
+function openConfig() { document.getElementById('config-overlay').classList.add('show'); document.getElementById('cfg-apikey').value=CFG.apiKey; document.getElementById('cfg-sheetid').value=CFG.sheetId; }
+async function saveConfig() {
+  const key = document.getElementById('cfg-apikey').value.trim();
+  const id = document.getElementById('cfg-sheetid').value.trim();
+  if (!key || !id) { document.getElementById('cfg-status').textContent = 'Both fields are required.'; return; }
+  document.getElementById('cfg-status').textContent = 'Testing connection...';
+  CFG.apiKey = key; CFG.sheetId = id;
+  localStorage.setItem('eos_apikey', key);
+  localStorage.setItem('eos_sheetid', id);
+  const test = await sheetsRead('_CONFIG', 'A1:B2');
+  if (test !== null) {
+    document.getElementById('cfg-status').textContent = '✓ Connected successfully!';
+    document.getElementById('config-overlay').classList.remove('show');
+    await loadAllFromSheets();
+  } else {
+    document.getElementById('cfg-status').textContent = '✗ Connection failed. Check your API key and Spreadsheet ID.';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════════
+const fmt = n => (!n&&n!==0)||n===''?'—':typeof n==='number'?Math.round(n).toLocaleString():n;
+const fmtD = n => !n?'—':'$'+Math.round(n).toLocaleString();
+const fmtPct = n => !n?'—':Math.round(n)+'%';
+const scBadge = v => v>=8?'high':v>=5?'mid':'low';
+
+function cr(label,val,cls=''){return`<div class="cr"><span class="cr-label">${label}</span><span class="cr-val ${cls}">${val}</span></div>`;}
+function pb(label,cur,tgt,type='gold'){const p=tgt>0?Math.min(100,Math.round(cur/tgt*100)):0;const txt=typeof cur==='number'&&cur<500?`${cur}/${tgt}`:fmtD(cur)+' / '+fmtD(tgt);return`<div class="pb-wrap"><div class="pb-label-row"><span>${label}</span><span>${txt} (${p}%)</span></div><div class="pb"><div class="pb-fill ${type}" style="width:${p}%"></div></div></div>`;}
+function mc(label,value,change='',changeType='',cls=''){return`<div class="mc"><div class="mc-label">${label}</div><div class="mc-value ${cls}">${value}</div>${change?`<div class="mc-change ${changeType}">${change}</div>`:''}</div>`;}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════════════════════════════════════
+const PAGE_TITLES={home:'Command Center',trends:'Trend Charts',monthly:'Monthly Rollup',bnp:'BNP Executive',meritas:'Meritas',brand:'Personal Brand',execution:'Weekly Execution',financial:'Financial Snapshot',cashflow:'Monthly Cash Flow',investments:'Investments & Wealth',goals:'Family Goals',freedom:'Freedom Metrics',familyops:'Family Ops',health:'Health Scoreboard',fitness:'Fitness Performance',nutrition:'Nutrition',habits:'Habits & Discipline'};
+
+document.querySelectorAll('.sb-item').forEach(el=>{
+  el.addEventListener('click',()=>{
+    document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    el.classList.add('active');
+    const pg=el.dataset.page;
+    document.getElementById('page-'+pg).classList.add('active');
+    document.getElementById('topbar-title').textContent=PAGE_TITLES[pg]||'';
+    renderPage(pg);
+  });
+});
+
+function renderAll(){renderPage('home');}
+function renderPage(pg){
+  const map={home:renderHome,trends:renderTrends,monthly:renderMonthly,bnp:renderBNP,meritas:renderMeritas,brand:renderBrand,execution:renderExecution,financial:renderFinancial,cashflow:renderCashflow,investments:renderInvestments,goals:renderGoals,freedom:renderFreedom,familyops:renderFamilyOps,health:renderHealth,fitness:renderFitness,nutrition:renderNutrition,habits:renderHabits};
+  if(map[pg])map[pg]();
+  updateWeekScore();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RENDER FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+function renderHome(){
+  const tIn=S.cashflow.salary+S.cashflow.rental+S.cashflow.advisory+S.cashflow.distributions+S.cashflow.bonuses;
+  const tOut=S.cashflow.mortgage+S.cashflow.utilities+S.cashflow.insurance+S.cashflow.carPayments+S.cashflow.childcare+S.cashflow.subscriptions+S.cashflow.restaurants+S.cashflow.entertainment+S.cashflow.travel+S.cashflow.shopping;
+  const net=tIn-tOut;const pct=S.bnp.revGoal>0?Math.round(S.bnp.revActual/S.bnp.revGoal*100):0;
+  const scVals=[S.scores.fitness,S.scores.nutrition,S.scores.recovery,S.scores.discipline,S.scores.energy].filter(v=>v>0);
+  const avg=scVals.length?Math.round(scVals.reduce((a,b)=>a+b,0)/scVals.length):0;
+  document.getElementById('home-metrics').innerHTML=mc('Net Worth',fmtD(S.financial.netWorth),'','','gold')+mc('Monthly Net CF',fmtD(net),net>0?'positive':'',net>0?'up':'dn')+mc('BNP vs Goal',pct+'%','','',pct>=100?'green':'')+mc('Capital Raised',fmtD(S.meritas.capitalRaised),'','','green')+mc('FI Progress',fmtPct(S.freedom.financialIndependencePct),'','','gold')+mc('Week Score',avg?avg+'/10':'—','','','gold');
+  document.getElementById('home-cards').innerHTML=`<div class="card"><div class="card-title">Professional Pulse</div>${cr('BNP Revenue',fmtD(S.bnp.revActual),pct>70?'green':'red')}${cr('Revenue Goal',fmtD(S.bnp.revGoal))}${cr('Pipeline Value',fmtD(S.bnp.pipeline),'gold')}${cr('Capital Raised YTD',fmtD(S.meritas.capitalRaised),'green')}${cr('Advisory Revenue/mo',fmtD(S.meritas.advisoryRevenue),'gold')}</div><div class="card"><div class="card-title">Health & Habits</div>${cr('Weight',S.health.weight?S.health.weight+' lbs':'—')}${cr('Energy',S.health.energyScore?S.health.energyScore+'/10':'—',S.health.energyScore>=7?'green':'')}${cr('Sleep Quality',S.health.sleepQuality?S.health.sleepQuality+'/10':'—')}${cr('Workout Consistency',fmtPct(S.health.workoutConsistency),S.health.workoutConsistency>=70?'green':'red')}${cr('Days on Plan',S.nutrition.daysOnPlan?S.nutrition.daysOnPlan+' days':'—')}</div>`;
+  document.getElementById('home-cards2').innerHTML=`<div class="card"><div class="card-title">Financial Snapshot</div>${cr('Cash on Hand',fmtD(S.financial.cashOnHand),'green')}${cr('Emergency Reserves',fmtD(S.financial.emergencyReserves))}${cr('Passive Income/mo',fmtD(S.financial.passiveIncome),'gold')}${cr('Total Debt',fmtD(S.financial.mortgageBalance+S.financial.carLoans+S.financial.creditCards),'red')}</div><div class="card"><div class="card-title">Freedom Progress</div><div style="padding:6px 0">${pb('Financial Independence',S.freedom.financialIndependencePct,100,'gold')}</div><div style="padding:6px 0">${pb('Passive Coverage',S.freedom.passiveIncomeCoverage,100,'green')}</div>${cr('Work-Optional Date',S.freedom.workOptionalDate||'—','gold')}${cr('Months Covered',S.freedom.monthsExpensesCovered?S.freedom.monthsExpensesCovered+' mo':'—')}</div>`;
+}
+
+let activeTrend='netWorth',trendChart=null;
+const TREND_DEFS=[{key:'netWorth',label:'Net Worth',color:'#c9a84c',fmt:v=>'$'+Math.round(v).toLocaleString()},{key:'bnpRevenue',label:'BNP Revenue',color:'#2ecc8a',fmt:v=>'$'+Math.round(v).toLocaleString()},{key:'capitalRaised',label:'Capital Raised',color:'#f0a330',fmt:v=>'$'+Math.round(v).toLocaleString()},{key:'weight',label:'Weight (lbs)',color:'#4a9eff',fmt:v=>v+' lbs'},{key:'linkedinFollowers',label:'LinkedIn Followers',color:'#4a9eff',fmt:v=>Math.round(v).toLocaleString()},{key:'weekScore',label:'Week Score',color:'#c9a84c',fmt:v=>v+'/10'}];
+
+function renderTrends(){
+  document.getElementById('trend-tabs').innerHTML=TREND_DEFS.map(t=>`<div class="chart-tab ${t.key===activeTrend?'active':''}" onclick="activeTrend='${t.key}';renderTrends()">${t.label}</div>`).join('');
+  const def=TREND_DEFS.find(t=>t.key===activeTrend);
+  const snaps=Object.entries(S.monthlySnapshots).sort((a,b)=>new Date('01 '+a[0])-new Date('01 '+b[0]));
+  const data=snaps.map(([month,snap])=>({month,value:snap[activeTrend]||0}));
+  document.getElementById('trend-content').innerHTML=`<div class="card" style="margin-bottom:14px"><div class="card-title">${def.label} — Monthly Trend</div>${data.length===0?'<div class="empty-state" style="padding:32px">No snapshots yet. Save monthly snapshots to build trend history.</div>':`<div style="position:relative;height:240px;margin-top:10px"><canvas id="trend-canvas" role="img" aria-label="${def.label} trend">${def.label} data.</canvas></div>`}</div><div class="card"><div class="card-title">Data Points</div>${data.length===0?'<div class="empty-state">No data</div>':data.map(d=>`<div class="cr"><span class="cr-label" style="font-family:'DM Mono',monospace;font-size:11px">${d.month}</span><span class="cr-val gold">${def.fmt(d.value)}</span></div>`).join('')}</div>`;
+  if(data.length>0){setTimeout(()=>{const ctx=document.getElementById('trend-canvas');if(!ctx)return;if(trendChart){trendChart.destroy();trendChart=null;}trendChart=new Chart(ctx,{type:'line',data:{labels:data.map(d=>d.month),datasets:[{label:def.label,data:data.map(d=>d.value),borderColor:def.color,backgroundColor:def.color+'22',tension:0.3,fill:true,pointBackgroundColor:def.color,pointRadius:4,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2236',titleColor:'#9aa3b8',bodyColor:'#e8eaf0',borderColor:'#2a3a56',borderWidth:1,callbacks:{label:ctx=>def.fmt(ctx.raw)}}},scales:{x:{grid:{color:'#1e2d4a'},ticks:{color:'#5c6882',font:{size:11}}},y:{grid:{color:'#1e2d4a'},ticks:{color:'#5c6882',font:{size:11},callback:v=>def.fmt(v)}}}}});},50);}
+}
+
+let monthlyOffset=0;
+function changeMonth(dir){monthlyOffset+=dir;renderMonthly();}
+function renderMonthly(){
+  const label=getMonthLabel(monthlyOffset);
+  document.getElementById('month-label').textContent=label;
+  const snap=S.monthlySnapshots[label];
+  if(!snap){document.getElementById('monthly-content').innerHTML=`<div class="card"><div class="empty-state" style="padding:32px">No snapshot for ${label}.<br><br>${monthlyOffset===0?'Click "Save This Month" to capture current figures.':'No data for this period.'}</div></div>`;return;}
+  const net=snap.netCashFlow||snap.totalInflows-snap.totalOutflows;
+  document.getElementById('monthly-content').innerHTML=`<div class="mg">${mc('Net Worth',fmtD(snap.netWorth),'','','gold')}${mc('Net Cash Flow',fmtD(net),net>0?'positive':'negative',net>0?'up':'dn')}${mc('BNP Revenue',fmtD(snap.bnpRevenue),'','','green')}${mc('Capital Raised',fmtD(snap.capitalRaised))}${mc('Passive Income',fmtD(snap.passiveIncome),'','','gold')}${mc('Week Score',snap.weekScore?snap.weekScore+'/10':'—')}</div><div class="cards"><div class="card"><div class="card-title">Financial</div>${cr('Net Worth',fmtD(snap.netWorth),'gold')}${cr('Total Income',fmtD(snap.totalInflows),'green')}${cr('Total Expenses',fmtD(snap.totalOutflows),'red')}${cr('Net Cash Flow',fmtD(net),net>0?'green':'red')}${cr('Passive Income',fmtD(snap.passiveIncome),'gold')}${cr('FI Progress',fmtPct(snap.fiPct))}</div><div class="card"><div class="card-title">Performance</div>${cr('BNP Revenue',fmtD(snap.bnpRevenue),'green')}${cr('Capital Raised',fmtD(snap.capitalRaised))}${cr('Advisory Revenue',fmtD(snap.advisoryRevenue),'gold')}${cr('Week Score',snap.weekScore?snap.weekScore+'/10':'—','gold')}${cr('Weight',snap.weight?snap.weight+' lbs':'—')}${cr('LinkedIn Followers',fmt(snap.linkedinFollowers))}</div></div>`;
+}
+
+function renderBNP(){
+  const pct=S.bnp.revGoal>0?Math.round(S.bnp.revActual/S.bnp.revGoal*100):0;
+  document.getElementById('bnp-metrics').innerHTML=mc('Total Revenue',fmtD(S.bnp.revActual),'vs '+fmtD(S.bnp.revGoal),'','gold')+mc('vs Goal',pct+'%',pct>=100?'on target':pct>70?'close':'behind',pct>=100?'up':'dn')+mc('Pipeline',fmtD(S.bnp.pipeline))+mc('Proposals Out',fmt(S.bnp.proposals))+mc('Close Rate',fmtPct(S.bnp.closeRate))+mc('Retention',fmtPct(S.bnp.retention));
+  document.getElementById('bnp-cards').innerHTML=`<div class="card"><div class="card-title">Revenue</div>${cr('Sponsorship',fmtD(S.bnp.sponsorship),'gold')}${cr('Membership',fmtD(S.bnp.membership),'green')}${cr('Events',fmtD(S.bnp.events))}<div style="padding:6px 0">${pb('vs Goal',S.bnp.revActual,S.bnp.revGoal,'gold')}</div></div><div class="card"><div class="card-title">Sales Team</div>${cr('Meetings Booked',fmt(S.bnp.meetings))}${cr('Outreach Activity',fmt(S.bnp.outreach))}${cr('Discovery Meetings',fmt(S.bnp.discovery))}</div><div class="card"><div class="card-title">Marketing</div>${cr('Emails Sent',fmt(S.bnp.emailsSent))}${cr('Social Posts',fmt(S.bnp.socialPosts))}${cr('Email Open Rate',fmtPct(S.bnp.openRate))}${cr('CTR',fmtPct(S.bnp.ctr))}${cr('Website Traffic',fmt(S.bnp.traffic))}</div>`;
+}
+
+function renderMeritas(){
+  document.getElementById('meritas-metrics').innerHTML=mc('Capital Raised YTD',fmtD(S.meritas.capitalRaised),'','','gold')+mc('Soft Commits',fmtD(S.meritas.softCommits))+mc('Hard Commits',fmtD(S.meritas.hardCommits),'','','green')+mc('Active Opps',fmt(S.meritas.activeOpps))+mc('Advisory Clients',fmt(S.meritas.advisoryClients))+mc('Advisory Rev/mo',fmtD(S.meritas.advisoryRevenue));
+  document.getElementById('meritas-cards').innerHTML=`<div class="card"><div class="card-title">Deal Pipeline</div>${cr('Brokers Contacted',fmt(S.meritas.brokersContacted))}${cr('Broker Meetings',fmt(S.meritas.brokerMeetings))}${cr('Deals Reviewed',fmt(S.meritas.dealsReviewed))}${cr('Underwritten',fmt(S.meritas.dealsUnderwritten))}${cr('LOIs Submitted',fmt(S.meritas.loisSubmitted),'gold')}</div><div class="card"><div class="card-title">Investor Relations</div>${cr('Investor Meetings',fmt(S.meritas.investorMeetings))}${cr('New Investors',fmt(S.meritas.newInvestors))}${cr('Soft Commits',fmtD(S.meritas.softCommits),'gold')}${cr('Hard Commits',fmtD(S.meritas.hardCommits),'green')}${cr('Capital Raised YTD',fmtD(S.meritas.capitalRaised),'gold')}</div><div class="card"><div class="card-title">Advisory</div>${cr('COI Meetings',fmt(S.meritas.coiMeetings))}${cr('New COIs',fmt(S.meritas.newCOIs))}${cr('Advisory Clients',fmt(S.meritas.advisoryClients),'green')}${cr('Monthly Advisory Rev',fmtD(S.meritas.advisoryRevenue),'gold')}</div>`;
+}
+
+function renderBrand(){
+  document.getElementById('brand-metrics').innerHTML=mc('LinkedIn Followers',fmt(S.brand.linkedinFollowers),'','','gold')+mc('Posts/Week',fmt(S.brand.postsPerWeek))+mc('Profile Views',fmt(S.brand.profileViews))+mc('Inbound Messages',fmt(S.brand.inboundMessages),'','','green')+mc('Podcast Invitations',fmt(S.brand.podcastInvitations))+mc('Referrals',fmt(S.brand.referralsGenerated));
+  document.getElementById('brand-cards').innerHTML=`<div class="card"><div class="card-title">Content Performance</div>${cr('Posts This Week',fmt(S.brand.postsPerWeek))}${cr('Speaking Opps',fmt(S.brand.speakingOpps),'gold')}${cr('Inbound Messages',fmt(S.brand.inboundMessages))}</div><div class="card"><div class="card-title">Opportunities Inbound</div>${cr('Consulting Inquiries',fmt(S.brand.consultingInquiries),'gold')}${cr('Investor Inbound',fmt(S.brand.investorInbound),'green')}${cr('Referrals Generated',fmt(S.brand.referralsGenerated))}</div>`;
+}
+
+function renderExecution(){
+  const d=S.execution;
+  document.getElementById('exec-cards').innerHTML=`<div class="card"><div class="card-title">Top 3 Priorities</div>${[d.priority1,d.priority2,d.priority3].filter(Boolean).map((p,i)=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:12.5px;display:flex;gap:7px"><span style="color:var(--gold);font-family:'DM Mono',monospace;font-size:10px">${i+1}</span>${p}</div>`).join('')||'<div class="empty-state">Run weekly review</div>'}</div><div class="card"><div class="card-title">Wins</div>${[d.win1,d.win2,d.win3].filter(Boolean).map(w=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:12.5px;display:flex;gap:7px"><span style="color:var(--green)">✓</span>${w}</div>`).join('')||'<div class="empty-state">No wins logged</div>'}</div><div class="card"><div class="card-title">Misses / Blockers</div>${[d.miss1,d.miss2].filter(Boolean).map(m=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:12.5px;display:flex;gap:7px"><span style="color:var(--red)">!</span>${m}</div>`).join('')||'<div class="empty-state">No blockers</div>'}</div>`;
+  document.getElementById('exec-scores').innerHTML=mc('Fitness',S.scores.fitness?S.scores.fitness+'/10':'—')+mc('Nutrition',S.scores.nutrition?S.scores.nutrition+'/10':'—')+mc('Recovery',S.scores.recovery?S.scores.recovery+'/10':'—')+mc('Discipline',S.scores.discipline?S.scores.discipline+'/10':'—','','','gold')+mc('Energy',S.scores.energy?S.scores.energy+'/10':'—')+mc('Overall',d.scoreOverall?d.scoreOverall+'/10':'—','','','gold');
+}
+
+function renderFinancial(){
+  const td=S.financial.mortgageBalance+S.financial.carLoans+S.financial.creditCards+S.financial.investmentDebt;
+  document.getElementById('fin-metrics').innerHTML=mc('Net Worth',fmtD(S.financial.netWorth),'','','gold')+mc('Total Income/mo',fmtD(S.financial.totalIncome),'','','green')+mc('Cash on Hand',fmtD(S.financial.cashOnHand))+mc('Emergency Reserves',fmtD(S.financial.emergencyReserves))+mc('Total Debt',fmtD(td),'','','red')+mc('Passive Income/mo',fmtD(S.financial.passiveIncome),'','','gold');
+  document.getElementById('fin-cards').innerHTML=`<div class="card"><div class="card-title">Assets</div>${cr('Cash on Hand',fmtD(S.financial.cashOnHand),'green')}${cr('Emergency Reserves',fmtD(S.financial.emergencyReserves),'green')}${cr('Net Worth',fmtD(S.financial.netWorth),'gold')}</div><div class="card"><div class="card-title">Liabilities</div>${cr('Mortgage Balances',fmtD(S.financial.mortgageBalance),'red')}${cr('Car Loans',fmtD(S.financial.carLoans),'red')}${cr('Credit Cards',fmtD(S.financial.creditCards),'red')}${cr('Investment Debt',fmtD(S.financial.investmentDebt),'red')}${cr('Total',fmtD(td),'red')}</div><div class="card"><div class="card-title">Income Streams</div>${cr('Salary / Primary',fmtD(S.financial.totalIncome),'green')}${cr('Passive Income',fmtD(S.financial.passiveIncome),'gold')}${cr('Rental Income',fmtD(S.financial.rentalIncome),'gold')}${cr('Advisory Income',fmtD(S.financial.advisoryIncome))}</div>`;
+}
+
+function renderCashflow(){
+  const cf=S.cashflow;const tIn=cf.salary+cf.rental+cf.advisory+cf.distributions+cf.bonuses;const tFixed=cf.mortgage+cf.utilities+cf.insurance+cf.carPayments+cf.childcare+cf.subscriptions;const tLife=cf.restaurants+cf.entertainment+cf.travel+cf.shopping;const tInv=cf.brokerageContribs+cf.savingsTransfers;const net=tIn-tFixed-tLife-tInv;
+  document.getElementById('cf-metrics').innerHTML=mc('Total Inflows',fmtD(tIn),'','','green')+mc('Fixed Expenses',fmtD(tFixed),'','','red')+mc('Lifestyle',fmtD(tLife),'','','red')+mc('Investments',fmtD(tInv),'','','blue')+mc('Net Cash Flow',fmtD(net),net>0?'positive':'negative',net>0?'up':'dn','gold');
+  document.getElementById('cf-cards').innerHTML=`<div class="card"><div class="card-title">Inflows</div>${cr('Salary',fmtD(cf.salary),'green')}${cr('Rental',fmtD(cf.rental),'green')}${cr('Advisory',fmtD(cf.advisory))}${cr('Distributions',fmtD(cf.distributions))}${cr('Bonuses',fmtD(cf.bonuses))}${cr('Total',fmtD(tIn),'green')}</div><div class="card"><div class="card-title">Fixed Expenses</div>${cr('Mortgage',fmtD(cf.mortgage))}${cr('Utilities',fmtD(cf.utilities))}${cr('Insurance',fmtD(cf.insurance))}${cr('Car Payments',fmtD(cf.carPayments))}${cr('Childcare',fmtD(cf.childcare))}${cr('Subscriptions',fmtD(cf.subscriptions))}</div><div class="card"><div class="card-title">Lifestyle & Investments</div>${cr('Restaurants',fmtD(cf.restaurants))}${cr('Entertainment',fmtD(cf.entertainment))}${cr('Travel',fmtD(cf.travel))}${cr('Shopping',fmtD(cf.shopping))}<div class="divider"></div>${cr('Brokerage Contributions',fmtD(cf.brokerageContribs),'blue')}${cr('Savings Transfers',fmtD(cf.savingsTransfers),'blue')}</div>`;
+}
+
+function renderInvestments(){
+  document.getElementById('inv-metrics').innerHTML=mc('Brokerage',fmtD(S.investments.brokerage),'','','gold')+mc('Retirement',fmtD(S.investments.retirement))+mc('Private Investments',fmtD(S.investments.privateInvestments),'','','green')+mc('Cash Yields',fmtD(S.investments.cashYields))+mc('Monthly Passive',fmtD(S.investments.monthlyPassive),'','','gold');
+  document.getElementById('inv-cards').innerHTML=`<div class="card"><div class="card-title">Real Estate Portfolio</div>${cr(S.investments.prop1Name+' Value',fmtD(S.investments.prop1Value),'gold')}${cr(S.investments.prop1Name+' Equity',fmtD(S.investments.prop1Equity),'green')}${cr(S.investments.prop1Name+' CF/mo',fmtD(S.investments.prop1Cashflow))}<div class="divider"></div>${cr(S.investments.prop2Name+' Value',fmtD(S.investments.prop2Value),'gold')}${cr(S.investments.prop2Name+' Equity',fmtD(S.investments.prop2Equity),'green')}${cr(S.investments.prop2Name+' CF/mo',fmtD(S.investments.prop2Cashflow))}</div><div class="card"><div class="card-title">Investment Accounts</div>${cr('Brokerage',fmtD(S.investments.brokerage))}${cr('Retirement',fmtD(S.investments.retirement))}${cr('Private Investments',fmtD(S.investments.privateInvestments),'gold')}${cr('Cash Yields',fmtD(S.investments.cashYields))}${cr('Monthly Passive Income',fmtD(S.investments.monthlyPassive),'green')}</div>`;
+}
+
+function renderGoals(){
+  if(!S.goals.length){document.getElementById('goals-list').innerHTML='<div class="card"><div class="empty-state" style="padding:24px">No goals yet. Click "Add Goal" to create one.</div></div>';return;}
+  const cols=['gold','green','blue','gold','green','blue'];
+  document.getElementById('goals-list').innerHTML='<div class="card">'+S.goals.map((g,i)=>{const p=g.target>0?Math.min(100,Math.round(g.current/g.target*100)):0;const col=cols[i%cols.length];return`<div style="padding:10px 0;border-bottom:1px solid var(--border)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:13px;font-weight:500;color:var(--text)">${g.name}</span><span class="tag ${col}">${p}%</span></div><div style="font-size:10.5px;color:var(--text3);margin-bottom:5px">Target: ${fmtD(g.target)} · By ${g.date}</div><div class="pb"><div class="pb-fill ${col}" style="width:${p}%"></div></div><div style="font-size:10.5px;color:var(--text3);margin-top:3px">${fmtD(g.current)} saved</div></div>`;}).join('')+'</div>';
+}
+
+function renderFreedom(){
+  document.getElementById('freedom-metrics').innerHTML=mc('Months Covered',S.freedom.monthsExpensesCovered?S.freedom.monthsExpensesCovered+' mo':'—','','','gold')+mc('Passive Coverage',fmtPct(S.freedom.passiveIncomeCoverage),'','','green')+mc('FI Progress',fmtPct(S.freedom.financialIndependencePct),'','','gold')+mc('Liquid Runway',S.freedom.liquidRunway?S.freedom.liquidRunway+' mo':'—')+mc('Work-Optional Date',S.freedom.workOptionalDate||'—');
+  document.getElementById('freedom-cards').innerHTML=`<div class="card"><div class="card-title">Independence Progress</div><div style="padding:6px 0">${pb('Financial Independence',S.freedom.financialIndependencePct,100,'gold')}</div><div style="padding:6px 0">${pb('Passive Income Coverage',S.freedom.passiveIncomeCoverage,100,'green')}</div><div style="padding:6px 0">${pb('Months of Expenses',S.freedom.monthsExpensesCovered,24,'blue')}</div></div><div class="card"><div class="card-title">Passive Income</div>${cr('Monthly Passive Income',fmtD(S.financial.passiveIncome),'gold')}${cr('Rental Income',fmtD(S.financial.rentalIncome))}${cr('Advisory Income',fmtD(S.financial.advisoryIncome))}${cr('Investment Distributions',fmtD(S.cashflow.distributions))}${cr('Work-Optional Date',S.freedom.workOptionalDate||'—','gold')}</div>`;
+}
+
+function renderFamilyOps(){
+  const events=[...S.familyEvents].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const upcoming=events.filter(e=>new Date(e.date)>=new Date());
+  const MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('familyops-cards').innerHTML=`<div class="card"><div class="card-title">Upcoming Events</div>${upcoming.length===0?'<div class="empty-state">No upcoming events</div>':upcoming.slice(0,6).map(e=>{const d=new Date(e.date);return`<div class="event-item"><div class="event-date-badge"><div class="event-date-mo">${MONS[d.getMonth()]}</div><div class="event-date-day">${d.getDate()}</div></div><div class="event-content"><div class="event-title">${e.title}</div><div class="event-meta"><span class="tag" style="font-size:9.5px">${e.category}</span>${e.notes?' · '+e.notes:''}</div></div></div>`;}).join('')}</div><div class="card"><div class="card-title">All Events (${events.length})</div>${events.length===0?'<div class="empty-state">No events</div>':events.map(e=>{const d=new Date(e.date);const past=d<new Date();return`<div class="cr" style="opacity:${past?0.5:1}"><span class="cr-label">${e.title}</span><span class="tag" style="font-size:9.5px">${MONS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}</span></div>`;}).join('')}</div>`;
+  document.getElementById('familyops-events').innerHTML='';
+}
+
+function renderHealth(){
+  const h=S.health;const sc2=S.scores;
+  document.getElementById('health-metrics').innerHTML=mc('Weight',h.weight?h.weight+' lbs':'—')+mc('Energy',h.energyScore?h.energyScore+'/10':'—','','',h.energyScore>=7?'green':'')+mc('Sleep Quality',h.sleepQuality?h.sleepQuality+'/10':'—')+mc('Stress',h.stressScore?h.stressScore+'/10':'—','','',h.stressScore<=4?'green':'red')+mc('Workout %',fmtPct(h.workoutConsistency));
+  document.getElementById('health-cards').innerHTML=`<div class="card"><div class="card-title">Performance Scores</div>${['Fitness','Nutrition','Recovery','Discipline','Energy'].map((n,i)=>{const keys=['fitness','nutrition','recovery','discipline','energy'];const v=sc2[keys[i]];return`<div class="cr"><span class="cr-label">${n}</span><div style="display:flex;align-items:center;gap:7px"><div class="pb" style="width:80px"><div class="pb-fill ${v>=8?'green':'gold'}" style="width:${v*10}%"></div></div><span class="score-badge ${scBadge(v)}">${v||'—'}</span></div></div>`;}).join('')}</div><div class="card"><div class="card-title">Preventive Care</div>${[['Annual Physical',h.physicalCompleted],['Bloodwork',h.bloodworkCompleted],['Dentist',h.dentistCompleted],['Vision',h.visionCompleted]].map(([n,done])=>`<div class="cr"><span class="cr-label">${n}</span><span class="tag ${done?'green':''}">${done?'Complete':'Pending'}</span></div>`).join('')}</div>`;
+}
+
+function renderFitness(){
+  const f=S.fitness;const total=f.strengthWorkouts+f.racquetballSessions+f.cardioSessions;const cons=f.targetWorkoutsPerWeek>0?Math.min(100,Math.round(total/f.targetWorkoutsPerWeek*100)):0;
+  document.getElementById('fitness-metrics').innerHTML=mc('Strength',fmt(f.strengthWorkouts))+mc('Racquetball',fmt(f.racquetballSessions),'','','gold')+mc('Cardio',fmt(f.cardioSessions))+mc('Steps',fmt(f.steps))+mc('Total Workouts',fmt(total),'of '+f.targetWorkoutsPerWeek,'','green')+mc('Consistency',fmtPct(cons));
+  document.getElementById('fitness-cards').innerHTML=`<div class="card"><div class="card-title">This Week</div>${cr('Strength Workouts',fmt(f.strengthWorkouts))}${cr('Racquetball Sessions',fmt(f.racquetballSessions),'gold')}${cr('Cardio Sessions',fmt(f.cardioSessions))}${cr('Steps',fmt(f.steps))}</div><div class="card"><div class="card-title">Consistency</div><div style="padding:6px 0">${pb('Weekly Consistency',total,f.targetWorkoutsPerWeek,'green')}</div>${cr('Target / Week',fmt(f.targetWorkoutsPerWeek))}${cr('Completed',fmt(total),'green')}</div>`;
+}
+
+function renderNutrition(){
+  const n=S.nutrition;
+  document.getElementById('nutrition-metrics').innerHTML=mc('Calories',n.calories?n.calories:'—','goal: '+n.calGoal)+mc('Protein',n.protein?n.protein+'g':'—','goal: '+n.proteinGoal+'g','',n.protein>=n.proteinGoal?'green':'')+mc('Water',n.water?n.water+'oz':'—','goal: '+n.waterGoal+'oz')+mc('Days on Plan',fmt(n.daysOnPlan),'','','gold')+mc('Alcohol',n.alcohol?n.alcohol+' drinks':'—');
+  document.getElementById('nutrition-cards').innerHTML=`<div class="card"><div class="card-title">Today's Progress</div><div style="padding:6px 0">${pb('Calories',n.calories,n.calGoal,'gold')}</div><div style="padding:6px 0">${pb('Protein',n.protein,n.proteinGoal,'green')}</div><div style="padding:6px 0">${pb('Water',n.water,n.waterGoal,'blue')}</div></div><div class="card"><div class="card-title">Weekly Summary</div>${cr('Avg Calories',n.calories?n.calories:'—')}${cr('Avg Protein',n.protein?n.protein+'g':'—',n.protein>=n.proteinGoal?'green':'')}${cr('Days on Plan',fmt(n.daysOnPlan),'gold')}${cr('Alcohol / Week',n.alcohol?n.alcohol+' drinks':'—')}</div>`;
+}
+
+function renderHabits(){
+  const hNames=['Weekly Planning','Workouts','Water Goal','Nutrition','Content Posted','Family Time','Reading'];
+  const hKeys=['weeklyPlanning','workouts','waterGoal','nutritionAdherence','contentPosted','familyTime','reading'];
+  document.getElementById('habits-tracker').innerHTML=`<div style="display:flex;justify-content:flex-end;gap:3px;margin-bottom:6px">${DAYS.map(d=>`<span style="width:9px;text-align:center;font-size:9px;color:var(--text3)">${d}</span>`).join('')}</div>`+hKeys.map((key,i)=>`<div class="habit-row"><span class="habit-name">${hNames[i]}</span><div class="habit-dots">${S.habits[key].map((on,j)=>`<div class="hdot ${on?'on':''}" onclick="toggleHabit('${key}',${j})"></div>`).join('')}</div></div>`).join('');
+  const totals=hKeys.map(k=>S.habits[k].filter(Boolean).length);const done=totals.reduce((a,b)=>a+b,0);
+  document.getElementById('habits-metrics').innerHTML=mc('Adherence',Math.round(done/(hKeys.length*7)*100)+'%','','',done/(hKeys.length*7)>=0.7?'green':'')+hKeys.slice(0,5).map((k,i)=>mc(hNames[i],totals[i]+'/7')).join('');
+}
+
+function toggleHabit(key,idx){S.habits[key][idx]=!S.habits[key][idx];localStorage.setItem('eos_habits',JSON.stringify(S.habits));renderHabits();}
+function updateWeekScore(){const v=[S.scores.fitness,S.scores.nutrition,S.scores.recovery,S.scores.discipline,S.scores.energy].filter(v=>v>0);const avg=v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):0;document.getElementById('week-score-display').textContent=avg?avg+'/10':'—';}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════════════════════════════
+let currentModal='';
+function fi(id,def=''){const el=document.getElementById(id);return el?el.value:def;}
+function fn(id,def=0){const v=fi(id);return v===''?def:parseFloat(v)||def;}
+function fb(id){const el=document.getElementById(id);return el?el.value==='true':false;}
+
+function formInput(label,id,val='',type='number'){return`<div class="form-group"><label class="form-label">${label}</label><input class="form-input" type="${type}" id="${id}" value="${val||''}"></div>`;}
+function formSec(label){return`<div class="form-section">${label}</div>`;}
+function formSelect(label,id,val,opts){return`<div class="form-group"><label class="form-label">${label}</label><select class="form-input" id="${id}">${opts.map(o=>`<option value="${o}" ${o==val?'selected':''}>${o}</option>`).join('')}</select></div>`;}
+
+const MODAL_DEFS = {
+  bnp:{title:'Log BNP — Week of '+getMondayDate(),build:()=>formSec('Revenue')+formInput('Revenue Goal','f-revGoal',S.bnp.revGoal)+formInput('Actual Revenue YTD','f-revActual',S.bnp.revActual)+formInput('Sponsorship Revenue','f-sponsorship',S.bnp.sponsorship)+formInput('Membership Revenue','f-membership',S.bnp.membership)+formInput('Events Revenue','f-events',S.bnp.events)+formInput('Retention %','f-retention',S.bnp.retention)+formInput('Pipeline Value','f-pipeline',S.bnp.pipeline)+formInput('Proposals Out','f-proposals',S.bnp.proposals)+formInput('Close Rate %','f-closeRate',S.bnp.closeRate)+formSec('Sales Team')+formInput('Meetings Booked','f-meetings',S.bnp.meetings)+formInput('Outreach Activity','f-outreach',S.bnp.outreach)+formInput('Discovery Meetings','f-discovery',S.bnp.discovery)+formSec('Marketing')+formInput('Emails Sent','f-emailsSent',S.bnp.emailsSent)+formInput('Social Posts','f-socialPosts',S.bnp.socialPosts)+formInput('Email Open Rate %','f-openRate',S.bnp.openRate)+formInput('CTR %','f-ctr',S.bnp.ctr)+formInput('Website Traffic','f-traffic',S.bnp.traffic),
+    save:async()=>{Object.assign(S.bnp,{revGoal:fn('f-revGoal'),revActual:fn('f-revActual'),sponsorship:fn('f-sponsorship'),membership:fn('f-membership'),events:fn('f-events'),retention:fn('f-retention'),pipeline:fn('f-pipeline'),proposals:fn('f-proposals'),closeRate:fn('f-closeRate'),meetings:fn('f-meetings'),outreach:fn('f-outreach'),discovery:fn('f-discovery'),emailsSent:fn('f-emailsSent'),socialPosts:fn('f-socialPosts'),openRate:fn('f-openRate'),ctr:fn('f-ctr'),traffic:fn('f-traffic')});await writeBNP();renderPage('bnp');}},
+  meritas:{title:'Log Meritas — Week of '+getMondayDate(),build:()=>formSec('Deal Sourcing')+formInput('Brokers Contacted','f-brokersContacted',S.meritas.brokersContacted)+formInput('Broker Meetings','f-brokerMeetings',S.meritas.brokerMeetings)+formInput('Deals Reviewed','f-dealsReviewed',S.meritas.dealsReviewed)+formInput('Deals Underwritten','f-dealsUnderwritten',S.meritas.dealsUnderwritten)+formInput('LOIs Submitted','f-loisSubmitted',S.meritas.loisSubmitted)+formInput('Active Opportunities','f-activeOpps',S.meritas.activeOpps)+formSec('Investor Relations')+formInput('Investor Meetings','f-investorMeetings',S.meritas.investorMeetings)+formInput('New Investors Added','f-newInvestors',S.meritas.newInvestors)+formInput('Soft Commits ($)','f-softCommits',S.meritas.softCommits)+formInput('Hard Commits ($)','f-hardCommits',S.meritas.hardCommits)+formInput('Capital Raised YTD ($)','f-capitalRaised',S.meritas.capitalRaised)+formSec('Advisory')+formInput('Advisory Clients','f-advisoryClients',S.meritas.advisoryClients)+formInput('Monthly Advisory Revenue','f-advisoryRevenue',S.meritas.advisoryRevenue)+formInput('COI Meetings','f-coiMeetings',S.meritas.coiMeetings)+formInput('New COIs Added','f-newCOIs',S.meritas.newCOIs),
+    save:async()=>{Object.assign(S.meritas,{brokersContacted:fn('f-brokersContacted'),brokerMeetings:fn('f-brokerMeetings'),dealsReviewed:fn('f-dealsReviewed'),dealsUnderwritten:fn('f-dealsUnderwritten'),loisSubmitted:fn('f-loisSubmitted'),activeOpps:fn('f-activeOpps'),investorMeetings:fn('f-investorMeetings'),newInvestors:fn('f-newInvestors'),softCommits:fn('f-softCommits'),hardCommits:fn('f-hardCommits'),capitalRaised:fn('f-capitalRaised'),advisoryClients:fn('f-advisoryClients'),advisoryRevenue:fn('f-advisoryRevenue'),coiMeetings:fn('f-coiMeetings'),newCOIs:fn('f-newCOIs')});await writeMeritas();renderPage('meritas');}},
+  brand:{title:'Log Brand — Week of '+getMondayDate(),build:()=>formInput('Posts Published','f-postsPerWeek',S.brand.postsPerWeek)+formInput('LinkedIn Followers','f-linkedinFollowers',S.brand.linkedinFollowers)+formInput('Profile Views','f-profileViews',S.brand.profileViews)+formInput('Inbound Messages','f-inboundMessages',S.brand.inboundMessages)+formInput('Podcast Invitations','f-podcastInvitations',S.brand.podcastInvitations)+formInput('Speaking Opportunities','f-speakingOpps',S.brand.speakingOpps)+formInput('Consulting Inquiries','f-consultingInquiries',S.brand.consultingInquiries)+formInput('Investor Inbound','f-investorInbound',S.brand.investorInbound)+formInput('Referrals Generated','f-referralsGenerated',S.brand.referralsGenerated),
+    save:async()=>{Object.assign(S.brand,{postsPerWeek:fn('f-postsPerWeek'),linkedinFollowers:fn('f-linkedinFollowers'),profileViews:fn('f-profileViews'),inboundMessages:fn('f-inboundMessages'),podcastInvitations:fn('f-podcastInvitations'),speakingOpps:fn('f-speakingOpps'),consultingInquiries:fn('f-consultingInquiries'),investorInbound:fn('f-investorInbound'),referralsGenerated:fn('f-referralsGenerated')});await writeBrand();renderPage('brand');}},
+  financial:{title:'Update Financial Snapshot',build:()=>formSec('Net Worth & Liquidity')+formInput('Net Worth ($)','f-netWorth',S.financial.netWorth)+formInput('Cash on Hand ($)','f-cashOnHand',S.financial.cashOnHand)+formInput('Emergency Reserves ($)','f-emergencyReserves',S.financial.emergencyReserves)+formSec('Income')+formInput('Total Income/mo ($)','f-totalIncome',S.financial.totalIncome)+formInput('Passive Income/mo ($)','f-passiveIncome',S.financial.passiveIncome)+formInput('Rental Income/mo ($)','f-rentalIncome',S.financial.rentalIncome)+formInput('Advisory Income/mo ($)','f-advisoryIncome',S.financial.advisoryIncome)+formSec('Liabilities')+formInput('Mortgage Balances ($)','f-mortgageBalance',S.financial.mortgageBalance)+formInput('Car Loans ($)','f-carLoans',S.financial.carLoans)+formInput('Credit Cards ($)','f-creditCards',S.financial.creditCards)+formInput('Investment Debt ($)','f-investmentDebt',S.financial.investmentDebt),
+    save:async()=>{Object.assign(S.financial,{netWorth:fn('f-netWorth'),cashOnHand:fn('f-cashOnHand'),emergencyReserves:fn('f-emergencyReserves'),totalIncome:fn('f-totalIncome'),passiveIncome:fn('f-passiveIncome'),rentalIncome:fn('f-rentalIncome'),advisoryIncome:fn('f-advisoryIncome'),mortgageBalance:fn('f-mortgageBalance'),carLoans:fn('f-carLoans'),creditCards:fn('f-creditCards'),investmentDebt:fn('f-investmentDebt')});await writeFinancial();renderPage('financial');}},
+  cashflow:{title:'Update Monthly Cash Flow',build:()=>formSec('Inflows')+formInput('Salary','f-salary',S.cashflow.salary)+formInput('Rental Income','f-rental',S.cashflow.rental)+formInput('Advisory Income','f-advisory',S.cashflow.advisory)+formInput('Investment Distributions','f-distributions',S.cashflow.distributions)+formInput('Bonuses','f-bonuses',S.cashflow.bonuses)+formSec('Fixed Expenses')+formInput('Mortgage','f-mortgage',S.cashflow.mortgage)+formInput('Utilities','f-utilities',S.cashflow.utilities)+formInput('Insurance','f-insurance',S.cashflow.insurance)+formInput('Car Payments','f-carPayments',S.cashflow.carPayments)+formInput('Childcare','f-childcare',S.cashflow.childcare)+formInput('Subscriptions','f-subscriptions',S.cashflow.subscriptions)+formSec('Lifestyle')+formInput('Restaurants','f-restaurants',S.cashflow.restaurants)+formInput('Entertainment','f-entertainment',S.cashflow.entertainment)+formInput('Travel','f-travel',S.cashflow.travel)+formInput('Shopping','f-shopping',S.cashflow.shopping)+formSec('Investments')+formInput('Brokerage Contributions','f-brokerageContribs',S.cashflow.brokerageContribs)+formInput('Savings Transfers','f-savingsTransfers',S.cashflow.savingsTransfers),
+    save:async()=>{Object.assign(S.cashflow,{salary:fn('f-salary'),rental:fn('f-rental'),advisory:fn('f-advisory'),distributions:fn('f-distributions'),bonuses:fn('f-bonuses'),mortgage:fn('f-mortgage'),utilities:fn('f-utilities'),insurance:fn('f-insurance'),carPayments:fn('f-carPayments'),childcare:fn('f-childcare'),subscriptions:fn('f-subscriptions'),restaurants:fn('f-restaurants'),entertainment:fn('f-entertainment'),travel:fn('f-travel'),shopping:fn('f-shopping'),brokerageContribs:fn('f-brokerageContribs'),savingsTransfers:fn('f-savingsTransfers')});await writeCashflow();renderPage('cashflow');}},
+  investments:{title:'Update Portfolio',build:()=>formSec('Real Estate')+formInput('Property 1 Name','f-p1name',S.investments.prop1Name,'text')+formInput('Property 1 Value','f-p1value',S.investments.prop1Value)+formInput('Property 1 Equity','f-p1equity',S.investments.prop1Equity)+formInput('Property 1 Cash Flow/mo','f-p1cf',S.investments.prop1Cashflow)+formInput('Property 2 Name','f-p2name',S.investments.prop2Name,'text')+formInput('Property 2 Value','f-p2value',S.investments.prop2Value)+formInput('Property 2 Equity','f-p2equity',S.investments.prop2Equity)+formInput('Property 2 Cash Flow/mo','f-p2cf',S.investments.prop2Cashflow)+formSec('Accounts')+formInput('Brokerage Balance','f-brokerage',S.investments.brokerage)+formInput('Retirement Balance','f-retirement',S.investments.retirement)+formInput('Private Investments','f-privateInvestments',S.investments.privateInvestments)+formInput('Cash Yields','f-cashYields',S.investments.cashYields)+formInput('Monthly Passive Income','f-monthlyPassive',S.investments.monthlyPassive),
+    save:async()=>{Object.assign(S.investments,{prop1Name:fi('f-p1name','Property 1'),prop1Value:fn('f-p1value'),prop1Equity:fn('f-p1equity'),prop1Cashflow:fn('f-p1cf'),prop2Name:fi('f-p2name','Property 2'),prop2Value:fn('f-p2value'),prop2Equity:fn('f-p2equity'),prop2Cashflow:fn('f-p2cf'),brokerage:fn('f-brokerage'),retirement:fn('f-retirement'),privateInvestments:fn('f-privateInvestments'),cashYields:fn('f-cashYields'),monthlyPassive:fn('f-monthlyPassive')});await writeInvestments();renderPage('investments');}},
+  goals:{title:'Update Goals Progress',build:()=>S.goals.map((g,i)=>`${formSec(g.name)}${formInput('Current Amount ($)','f-gc-'+i,g.current)}${formInput('Target Amount ($)','f-gt-'+i,g.target)}${formInput('Target Date (YYYY-MM)','f-gd-'+i,g.date,'text')}`).join(''),
+    save:async()=>{for(let i=0;i<S.goals.length;i++){const c=fn('f-gc-'+i),t=fn('f-gt-'+i),d=fi('f-gd-'+i);S.goals[i].current=c;S.goals[i].target=t;if(d)S.goals[i].date=d;await writeGoal(S.goals[i],false);}renderPage('goals');}},
+  addgoal:{title:'Add New Goal',build:()=>formInput('Goal Name','f-gname','','text')+formInput('Target Amount ($)','f-gtarget','')+formInput('Current Amount ($)','f-gcurrent',0)+formInput('Target Date (YYYY-MM-DD)','f-gdate','','text')+formSelect('Category','f-gcat','Vacation',['Vacation','Home','Education','Investment','Emergency','Other']),
+    save:async()=>{const name=fi('f-gname');if(!name)return;const g={name,target:fn('f-gtarget'),current:fn('f-gcurrent'),date:fi('f-gdate'),category:fi('f-gcat'),notes:'',isActive:true,rowIndex:S.goals.length+3};S.goals.push(g);await writeGoal(g,true);renderPage('goals');}},
+  freedom:{title:'Update Freedom Metrics',build:()=>formInput('Months of Expenses Covered','f-months',S.freedom.monthsExpensesCovered)+formInput('Passive Income Coverage %','f-picoverage',S.freedom.passiveIncomeCoverage)+formInput('Financial Independence %','f-fipct',S.freedom.financialIndependencePct)+formInput('Liquid Runway (months)','f-runway',S.freedom.liquidRunway)+formInput('Work-Optional Date (YYYY-MM)','f-wodate',S.freedom.workOptionalDate,'text'),
+    save:async()=>{Object.assign(S.freedom,{monthsExpensesCovered:fn('f-months'),passiveIncomeCoverage:fn('f-picoverage'),financialIndependencePct:fn('f-fipct'),liquidRunway:fn('f-runway'),workOptionalDate:fi('f-wodate','2030-01')});await writeFreedom();renderPage('freedom');}},
+  addevent:{title:'Add Family Event',build:()=>formInput('Event Title','f-etitle','','text')+formInput('Date (YYYY-MM-DD)','f-edate','','date')+formSelect('Category','f-ecat','Trip',['Trip','Birthday','Anniversary','Medical','Financial','Vehicle','Home','Insurance','Tax','Other'])+formInput('Notes (optional)','f-enotes','','text'),
+    save:async()=>{const title=fi('f-etitle'),date=fi('f-edate');if(!title||!date)return;const ev={title,date,category:fi('f-ecat'),notes:fi('f-enotes')};S.familyEvents.push({...ev,id:String(Date.now())});await writeEvent(ev);renderPage('familyops');}},
+  health:{title:'Log Health — Week of '+getMondayDate(),build:()=>formSec('Biometrics')+formInput('Weight (lbs)','f-weight',S.health.weight)+formInput('Energy Score (1-10)','f-energyScore',S.health.energyScore)+formInput('Sleep Quality (1-10)','f-sleepQuality',S.health.sleepQuality)+formInput('Stress Score (1-10)','f-stressScore',S.health.stressScore)+formInput('Workout Consistency %','f-workoutCons',S.health.workoutConsistency)+formSec('Performance Scores')+formInput('Fitness Score (1-10)','f-scoreFitness',S.scores.fitness)+formInput('Nutrition Score (1-10)','f-scoreNutrition',S.scores.nutrition)+formInput('Recovery Score (1-10)','f-scoreRecovery',S.scores.recovery)+formInput('Discipline Score (1-10)','f-scoreDiscipline',S.scores.discipline)+formInput('Energy Score (1-10)','f-scoreEnergy',S.scores.energy)+formSec('Preventive Care')+formSelect('Annual Physical','f-physical',String(S.health.physicalCompleted),['false','true'])+formSelect('Bloodwork','f-bloodwork',String(S.health.bloodworkCompleted),['false','true'])+formSelect('Dentist','f-dentist',String(S.health.dentistCompleted),['false','true'])+formSelect('Vision','f-vision',String(S.health.visionCompleted),['false','true']),
+    save:async()=>{Object.assign(S.health,{weight:fn('f-weight'),energyScore:fn('f-energyScore'),sleepQuality:fn('f-sleepQuality'),stressScore:fn('f-stressScore'),workoutConsistency:fn('f-workoutCons'),physicalCompleted:fi('f-physical')==='true',bloodworkCompleted:fi('f-bloodwork')==='true',dentistCompleted:fi('f-dentist')==='true',visionCompleted:fi('f-vision')==='true'});Object.assign(S.scores,{fitness:fn('f-scoreFitness'),nutrition:fn('f-scoreNutrition'),recovery:fn('f-scoreRecovery'),discipline:fn('f-scoreDiscipline'),energy:fn('f-scoreEnergy')});await writeHealth();renderPage('health');}},
+  fitness:{title:'Log Fitness — Week of '+getMondayDate(),build:()=>formInput('Strength Workouts','f-strength',S.fitness.strengthWorkouts)+formInput('Racquetball Sessions','f-racquetball',S.fitness.racquetballSessions)+formInput('Cardio Sessions','f-cardio',S.fitness.cardioSessions)+formInput('Steps Total','f-steps',S.fitness.steps)+formInput('Target Workouts/Week','f-target',S.fitness.targetWorkoutsPerWeek),
+    save:async()=>{Object.assign(S.fitness,{strengthWorkouts:fn('f-strength'),racquetballSessions:fn('f-racquetball'),cardioSessions:fn('f-cardio'),steps:fn('f-steps'),targetWorkoutsPerWeek:fn('f-target')});await writeFitness();renderPage('fitness');}},
+  nutrition:{title:'Log Nutrition — Week of '+getMondayDate(),build:()=>formSec('This Week')+formInput('Avg Calories Daily','f-calories',S.nutrition.calories)+formInput('Avg Protein Daily (g)','f-protein',S.nutrition.protein)+formInput('Avg Water Daily (oz)','f-water',S.nutrition.water)+formInput('Alcohol Drinks Total','f-alcohol',S.nutrition.alcohol)+formInput('Days on Plan','f-daysOnPlan',S.nutrition.daysOnPlan)+formSec('Goals')+formInput('Calorie Goal','f-calGoal',S.nutrition.calGoal)+formInput('Protein Goal (g)','f-proteinGoal',S.nutrition.proteinGoal)+formInput('Water Goal (oz)','f-waterGoal',S.nutrition.waterGoal),
+    save:async()=>{Object.assign(S.nutrition,{calories:fn('f-calories'),protein:fn('f-protein'),water:fn('f-water'),alcohol:fn('f-alcohol'),daysOnPlan:fn('f-daysOnPlan'),calGoal:fn('f-calGoal'),proteinGoal:fn('f-proteinGoal'),waterGoal:fn('f-waterGoal')});await writeNutrition();renderPage('nutrition');}}
+};
+
+function openModal(type){
+  currentModal=type;const cfg=MODAL_DEFS[type];if(!cfg)return;
+  document.getElementById('modal-title').textContent=cfg.title;
+  document.getElementById('modal-body').innerHTML=cfg.build();
+  document.getElementById('modal-overlay').classList.add('show');
+}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('show');}
+async function saveModal(){
+  const cfg=MODAL_DEFS[currentModal];if(!cfg)return;
+  document.querySelector('#modal .btn-primary').textContent='Saving...';
+  await cfg.save();
+  closeModal();
+  updateWeekScore();
+  document.querySelector('#modal .btn-primary').textContent='Save to Sheets';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WEEKLY REVIEW
+// ═══════════════════════════════════════════════════════════════════════════════
+let wmStep=0;
+const WM_STEPS=[
+  {label:'KPI Review',title:'Professional KPIs',render:()=>`<p style="font-size:13px;color:var(--text2);margin-bottom:14px">Review this week's key professional metrics.</p><div class="mg">${mc('BNP Revenue',fmtD(S.bnp.revActual),'','','gold')}${mc('Pipeline',fmtD(S.bnp.pipeline))}${mc('Capital Raised',fmtD(S.meritas.capitalRaised),'','','green')}${mc('Advisory Rev',fmtD(S.meritas.advisoryRevenue))}</div><p style="font-size:11.5px;color:var(--text3)">Navigate to BNP or Meritas to update figures before continuing.</p>`},
+  {label:'Financial Review',title:'Financial Check-In',render:()=>`<p style="font-size:13px;color:var(--text2);margin-bottom:14px">Your financial position this week.</p><div class="mg">${mc('Net Worth',fmtD(S.financial.netWorth),'','','gold')}${mc('Cash on Hand',fmtD(S.financial.cashOnHand),'','','green')}${mc('Passive Income',fmtD(S.financial.passiveIncome))}${mc('FI Progress',fmtPct(S.freedom.financialIndependencePct))}</div><div style="margin-top:4px">${pb('Financial Independence',S.freedom.financialIndependencePct,100,'gold')}</div>`},
+  {label:'Wins & Losses',title:'Wins & Misses',render:()=>`<p style="font-size:13px;color:var(--text2);margin-bottom:14px">What went well? What fell short?</p>${formInput('Win #1','wm-win1',S.execution.win1,'text')}${formInput('Win #2','wm-win2',S.execution.win2,'text')}${formInput('Win #3','wm-win3',S.execution.win3,'text')}${formInput('Miss / Blocker #1','wm-miss1',S.execution.miss1,'text')}${formInput('Miss / Blocker #2','wm-miss2',S.execution.miss2,'text')}`},
+  {label:'Habit Review',title:'Habit Consistency',render:()=>{const hN=['Weekly Planning','Workouts','Water Goal','Nutrition','Content Posted','Family Time','Reading'];const hK=['weeklyPlanning','workouts','waterGoal','nutritionAdherence','contentPosted','familyTime','reading'];const tots=hK.map(k=>S.habits[k].filter(Boolean).length);return`<p style="font-size:13px;color:var(--text2);margin-bottom:14px">Your habit consistency this week.</p>`+hK.map((k,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)"><span style="font-size:12.5px;color:var(--text2)">${hN[i]}</span><div style="display:flex;align-items:center;gap:7px"><div class="pb" style="width:70px"><div class="pb-fill green" style="width:${tots[i]/7*100}%"></div></div><span style="font-size:11.5px;font-family:'DM Mono',monospace;color:${tots[i]>=5?'var(--green)':'var(--text3)'}">${tots[i]}/7</span></div></div>`).join('');}},
+  {label:'Performance Scores',title:'Rate This Week',render:()=>`<p style="font-size:13px;color:var(--text2);margin-bottom:14px">Score each dimension 1–10. These write to EXECUTION_WEEKLY.</p>${formInput('Fitness (1–10)','wm-s-fitness',S.scores.fitness)}${formInput('Nutrition (1–10)','wm-s-nutrition',S.scores.nutrition)}${formInput('Recovery (1–10)','wm-s-recovery',S.scores.recovery)}${formInput('Discipline (1–10)','wm-s-discipline',S.scores.discipline)}${formInput('Energy (1–10)','wm-s-energy',S.scores.energy)}${formInput('Overall Week Score (1–10)','wm-s-overall',S.execution.scoreOverall)}`},
+  {label:'Priorities',title:"Next Week's Priorities",render:()=>`<p style="font-size:13px;color:var(--text2);margin-bottom:14px">Set your top 3 priorities for the coming week.</p>${formInput('Priority #1','wm-p1',S.execution.priority1,'text')}${formInput('Priority #2','wm-p2',S.execution.priority2,'text')}${formInput('Priority #3','wm-p3',S.execution.priority3,'text')}${formInput('Critical Meetings','wm-meetings',S.execution.criticalMeetings,'text')}${formInput('Key Follow-Ups','wm-followups',S.execution.keyFollowups,'text')}${formInput('Bottlenecks to Clear','wm-bottlenecks',S.execution.bottlenecks,'text')}`},
+  {label:'Summary',title:'Week Complete',render:()=>{const sc2=S.scores;const v=[sc2.fitness,sc2.nutrition,sc2.recovery,sc2.discipline,sc2.energy].filter(v=>v>0);const avg=v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):0;return`<div style="text-align:center;padding:12px 0 20px"><div style="font-size:48px;font-family:'DM Mono',monospace;color:var(--gold)">${S.execution.scoreOverall||avg||'—'}</div><div style="font-size:14px;color:var(--text3)">Week Score — saved to EXECUTION_WEEKLY</div></div><div class="mg">${mc('Fitness',sc2.fitness?sc2.fitness+'/10':'—')}${mc('Nutrition',sc2.nutrition?sc2.nutrition+'/10':'—')}${mc('Recovery',sc2.recovery?sc2.recovery+'/10':'—')}${mc('Discipline',sc2.discipline?sc2.discipline+'/10':'—','','','gold')}</div><div style="padding:8px 0;border-top:1px solid var(--border)"><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Top Priority Next Week</div><div style="font-size:13px;color:var(--text)">${S.execution.priority1||'Not set'}</div></div>`;}}
+];
+
+function saveWMStep(){
+  if(wmStep===2){['win1','win2','win3','miss1','miss2'].forEach(k=>{const el=document.getElementById('wm-'+k);if(el)S.execution[k]=el.value;});}
+  if(wmStep===4){['fitness','nutrition','recovery','discipline','energy'].forEach(k=>{const el=document.getElementById('wm-s-'+k);if(el&&el.value)S.scores[k]=parseFloat(el.value);});const ov=document.getElementById('wm-s-overall');if(ov&&ov.value)S.execution.scoreOverall=parseFloat(ov.value);}
+  if(wmStep===5){const map={p1:'priority1',p2:'priority2',p3:'priority3',meetings:'criticalMeetings',followups:'keyFollowups',bottlenecks:'bottlenecks'};Object.keys(map).forEach(id=>{const el=document.getElementById('wm-'+id);if(el)S.execution[map[id]]=el.value;});}
+}
+
+async function wmNext(){
+  saveWMStep();
+  if(wmStep<WM_STEPS.length-1){wmStep++;renderWMStep();}
+  else{
+    document.getElementById('wm-next').textContent='Saving...';
+    await writeExecution();
+    document.getElementById('weekly-overlay').classList.remove('show');
+    renderAll();
+    updateWeekScore();
+  }
+}
+function wmPrev(){if(wmStep>0){wmStep--;renderWMStep();}}
+function openWeekly(){wmStep=0;renderWMStep();document.getElementById('weekly-overlay').classList.add('show');}
+function renderWMStep(){
+  const step=WM_STEPS[wmStep];
+  document.getElementById('wm-step-label').textContent=`Step ${wmStep+1} of ${WM_STEPS.length}`;
+  document.getElementById('wm-title').textContent=step.title;
+  document.getElementById('wm-progress').style.width=((wmStep+1)/WM_STEPS.length*100)+'%';
+  document.getElementById('wm-body').innerHTML=step.render();
+  document.getElementById('wm-dots').innerHTML=WM_STEPS.map((_,i)=>`<div class="wm-dot ${i===wmStep?'active':''}"></div>`).join('');
+  document.getElementById('wm-prev').style.display=wmStep===0?'none':'block';
+  document.getElementById('wm-next').textContent=wmStep===WM_STEPS.length-1?'Finish & Save to Sheets ✓':'Continue →';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════════
+async function init(){
+  document.getElementById('topbar-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+  if(!CFG.apiKey||!CFG.sheetId||CFG.apiKey===''){  // force config
+    if(false){
+    document.getElementById('config-overlay').classList.add('show');
+    setSyncStatus('error','Not connected');
+  } else {
+    await loadAllFromSheets();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
